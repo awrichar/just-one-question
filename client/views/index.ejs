@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+  </head>
+  
+  <body>
+    <div class="container main">
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+          <h1>Just One Question</h1>
+          <span class="help-block">
+            Enter a question and a set of possible responses.
+          </span>
+              
+          <form method="post">
+            <div class="form-group">
+              <input type="email" name="email" id="email" class="form-control input-lg" placeholder="Your email">
+            </div>
+            
+            <div class="form-group">
+              <input type="text" name="recipients" id="recipients" class="form-control input-lg" placeholder="Your recipients">
+            </div>
+            
+            <div class="form-group">
+              <input type="text" name="question" id="question" class="form-control input-lg" placeholder="Your question">
+            </div>
+            
+            <div class="form-group">
+              <textarea name="choices" id="choices" class="form-control input-lg" rows="6" placeholder="Your answer choices (one per line)"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Preview</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/angular.min.js"></script>
+  </body>
+</html>

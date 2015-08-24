@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question - Preview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+  </head>
+  
+  <body>
+    <div class="container main">
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+          <h1>Preview</h1>
+          
+          <form method="post" action="/send">
+            <table class="table">
+              <tr>
+                <th>From</th>
+                <td>
+                  <%= email %>
+                  <input type="hidden" name="email" value="<%= email %>" />
+                </td>
+              </tr>
+              <tr>
+                <th>To</th>
+                <td>
+                  <%= recipients %>
+                  <input type="hidden" name="recipients" value="<%= recipients %>" />
+                </td>
+              </tr>
+              <tr>
+                <th>Question</th>
+                <td>
+                  <%= question %>
+                  <input type="hidden" name="question" value="<%= question %>" />
+                </td>
+              </tr>
+              <tr>
+                <th>Choices</th>
+                <td>
+                  <% for(var i=0; i<choices.length; i++) { %>
+                    <%= i+1 %>) <%= choices[i] %><br />
+                  <% } %>
+                  <input type="hidden" name="choices" value="<%= choices.join("\n") %>" />
+                </td>
+              </tr>
+            </table>
+            
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/angular.min.js"></script>
+  </body>
+</html>
