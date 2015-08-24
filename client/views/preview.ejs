@@ -40,7 +40,7 @@
                 <th>Choices</th>
                 <td>
                   <% for(var i=0; i<choices.length; i++) { %>
-                    <%= i+1 %>) <%= choices[i] %><br />
+                    <%= choices[i] %><br />
                   <% } %>
                   <input type="hidden" name="choices" value="<%= choices.join("\n") %>" />
                 </td>
