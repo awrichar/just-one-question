@@ -1,3 +1,13 @@
+.main-nav {
+    background: #666;
+    font-size: 20px;
+    padding: 5px;
+}
+
+.main-nav a {
+    color: #fff;
+}
+
 .main {
     text-align: center;
 }

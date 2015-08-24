@@ -2,17 +2,17 @@
 <html lang="en">
   <head>
     <title>Just One Question - Preview</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/styles.css">
+    <% include partials/head %>
   </head>
-  
+
   <body>
+    <% include partials/nav %>
+
     <div class="container main">
       <div class="row">
         <div class="col-md-8 col-md-offset-2">
           <h1>Preview</h1>
-          
+
           <form method="post" action="/send">
             <table class="table">
               <tr>
@@ -46,16 +46,13 @@
                 </td>
               </tr>
             </table>
-            
+
             <button type="submit" class="btn btn-primary">Send</button>
           </form>
         </div>
       </div>
     </div>
-    
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/angular.min.js"></script>
+
+    <% include partials/foot %>
   </body>
 </html>
