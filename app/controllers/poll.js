@@ -180,19 +180,14 @@ app.post('/response/:id', function (request, response) {
       if (!choice || isNaN(choice) || choice < 1)
         return logError('Error parsing response');
 
-      db.get('SELECT COUNT(*) FROM response WHERE question_id = ?', pollID, function(err, row) {
+      responseModel.getCount(pollID, function(err, count) {
         if (err) return logError('Error finding question', err);
-
-        var count = row['COUNT(*)'];
         if (choice > count) return logError('Choice is out of range');
 
-        db.run('UPDATE response SET count=count+1 WHERE question_id=? AND idx=?',
-          [pollID, choice],
-          function (err) {
-            if (err || !this.changes) return logError('Error writing response', err);
-            console.log('Added response (' + choice + ') to question (' + pollID + ')');
-          }
-        );
+        responseModel.increment(pollID, choice, function(err, changes) {
+          if (err || !changes) return logError('Error writing response', err);
+          console.log('Added response (' + choice + ') to question (' + pollID + ')');
+        });
       });
     });
   });
