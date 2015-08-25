@@ -1,12 +1,11 @@
 var express = require('express');
-
 var app = express();
 app.set('views', './app/views');
 
-app.use('/poll', require('./poll'))
+app.use('/main', require('./poll'))
 
 app.get('/', function(request, response) {
-  response.render('index.ejs');
+  response.redirect('/main');
 });
 
 module.exports = app

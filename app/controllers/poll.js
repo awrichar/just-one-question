@@ -9,6 +9,96 @@ var app = express();
 app.set('views', './app/views');
 app.use(express.bodyParser());
 
+app.get('/', function(request, response) {
+  response.render('index.ejs');
+});
+
+app.post('/', function (request, response) {
+  response.render('preview.ejs', getQuestionParams(request.body));
+});
+
+app.post('/send', function (request, response) {
+  var params = getQuestionParams(request.body);
+
+  createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
+    if (err) return errorResponse(response, 'Error inserting into database', err);
+
+    var prefix = '[Q' + id + ']',
+      subject = prefix + ' ' + params.question,
+      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
+        params.choicesNumbered.join('\n') +
+        '\n\nPlease respond to this email with a single number indicating your choice.';
+
+    sendEmail(params.email, params.recipients, subject, body, function(err) {
+      if (err) return errorResponse(response, 'Error sending email', err);
+
+      createHook(request, id, function(err) {
+        if (err) return errorResponse(response, 'Error creating email hook', err);
+        response.render('success.ejs');
+      });
+    });
+  });
+});
+
+app.post('/response/:id', function (request, response) {
+  response.send();
+
+  var pollID = request.params.id,
+    messageID = request.body.message_data.message_id;
+
+  var client = new contextio.Client({
+    key: config.CONTEXTIO_KEY,
+    secret: config.CONTEXTIO_SECRET
+  });
+
+  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
+    if (err) return logError('Error connecting to Context.IO', err);
+
+    client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
+      if (err || !msg.body.length) logError('Error getting message body', err);
+
+      var body = msg.body[0]['content'],
+        result = body.match(/^\s*(\d+)/),
+        choice = result ? parseInt(result[1]) : null;
+
+      if (!choice || isNaN(choice) || choice < 1)
+        return logError('Error parsing response');
+
+      responseModel.getCount(pollID, function(err, count) {
+        if (err) return logError('Error finding question', err);
+        if (choice > count) return logError('Choice is out of range');
+
+        responseModel.increment(pollID, choice, function(err, changes) {
+          if (err || !changes) return logError('Error writing response', err);
+          console.log('Added response (' + choice + ') to question (' + pollID + ')');
+        });
+      });
+    });
+  });
+});
+
+app.get('/view', function(request, response) {
+  questionModel.list(function(err, rows) {
+    if (err) return errorResponse(response, 'Error listing results', err);
+    response.render('results.ejs', {questions: rows});
+  });
+});
+
+app.get('/view/:id', function(request, response) {
+  var pollID = request.params.id;
+
+  questionModel.get(pollID, function(err, question) {
+    if (err) return errorResponse(response, 'Error fetching question', err);
+
+    responseModel.list(pollID, function(err, responses) {
+      if (err) return errorResponse(response, 'Error fetching responses', err);
+      response.render('result.ejs', {question: question, responses: responses});
+    });
+  });
+});
+
+module.exports = app;
+
 function splitChoices(choices) {
   var output = [];
   choices = choices.split('\n');
@@ -121,89 +211,3 @@ function createHook(request, id, callback) {
     });
   });
 }
-
-app.post('/', function (request, response) {
-  response.render('preview.ejs', getQuestionParams(request.body));
-});
-
-app.post('/send', function (request, response) {
-  var params = getQuestionParams(request.body);
-
-  createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
-    if (err) return errorResponse(response, 'Error inserting into database', err);
-
-    var prefix = '[Q' + id + ']',
-      subject = prefix + ' ' + params.question,
-      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
-        params.choicesNumbered.join('\n') +
-        '\n\nPlease respond to this email with a single number indicating your choice.';
-
-    sendEmail(params.email, params.recipients, subject, body, function(err) {
-      if (err) return errorResponse(response, 'Error sending email', err);
-
-      createHook(request, id, function(err) {
-        if (err) return errorResponse(response, 'Error creating email hook', err);
-        response.render('success.ejs');
-      });
-    });
-  });
-});
-
-app.post('/response/:id', function (request, response) {
-  response.send();
-
-  var pollID = request.params.id,
-    messageID = request.body.message_data.message_id;
-
-  var client = new contextio.Client({
-    key: config.CONTEXTIO_KEY,
-    secret: config.CONTEXTIO_SECRET
-  });
-
-  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
-    if (err) return logError('Error connecting to Context.IO', err);
-
-    client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
-      if (err || !msg.body.length) logError('Error getting message body', err);
-
-      var body = msg.body[0]['content'],
-        result = body.match(/^\s*(\d+)/),
-        choice = result ? parseInt(result[1]) : null;
-
-      if (!choice || isNaN(choice) || choice < 1)
-        return logError('Error parsing response');
-
-      responseModel.getCount(pollID, function(err, count) {
-        if (err) return logError('Error finding question', err);
-        if (choice > count) return logError('Choice is out of range');
-
-        responseModel.increment(pollID, choice, function(err, changes) {
-          if (err || !changes) return logError('Error writing response', err);
-          console.log('Added response (' + choice + ') to question (' + pollID + ')');
-        });
-      });
-    });
-  });
-});
-
-app.get('/view', function(request, response) {
-  questionModel.list(function(err, rows) {
-    if (err) return errorResponse(response, 'Error listing results', err);
-    response.render('results.ejs', {questions: rows});
-  });
-});
-
-app.get('/view/:id', function(request, response) {
-  var pollID = request.params.id;
-
-  questionModel.get(pollID, function(err, question) {
-    if (err) return errorResponse(response, 'Error fetching question', err);
-
-    responseModel.list(pollID, function(err, responses) {
-      if (err) return errorResponse(response, 'Error fetching responses', err);
-      response.render('result.ejs', {question: question, responses: responses});
-    });
-  });
-});
-
-module.exports = app;
