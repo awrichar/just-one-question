@@ -7,12 +7,12 @@ exports.create = function(owner, recipients, question, callback) {
     recipients: recipients,
     question: question,
   }, callback);
-}
+};
 
 exports.list = function(callback) {
   db.fetch(TABLE, callback);
-}
+};
 
 exports.get = function(id, callback) {
   db.get(TABLE, {id: id}, callback);
-}
+};

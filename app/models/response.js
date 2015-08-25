@@ -18,7 +18,7 @@ exports.createMany = function(question_id, choices, callback) {
 
   if (errors == 0) callback(null);
   else callback(errors);
-}
+};
 
 exports.getCount = function(question_id, callback) {
   var sql = 'SELECT COUNT(*) FROM ' + TABLE + ' WHERE question_id = ?';
@@ -26,7 +26,7 @@ exports.getCount = function(question_id, callback) {
     if (err) return callback(err);
     callback(null, row['COUNT(*)']);
   });
-}
+};
 
 exports.increment = function(question_id, idx, callback) {
   var sql = 'UPDATE response SET count=count+1 WHERE question_id=? AND idx=?';
@@ -34,8 +34,8 @@ exports.increment = function(question_id, idx, callback) {
     if (err) return callback(err);
     callback(null, this.changes);
   });
-}
+};
 
 exports.list = function(question_id, callback) {
   db.fetch(TABLE, {question_id: question_id}, 'idx', callback);
-}
+};

@@ -210,4 +210,4 @@ app.get('/view/:id', function(request, response) {
   });
 });
 
-module.exports = app
+module.exports = app;
