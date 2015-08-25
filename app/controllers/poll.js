@@ -23,7 +23,7 @@ app.post('/send', function (request, response) {
   createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
     if (err) return errorResponse(response, 'Error inserting into database', err);
 
-    var prefix = '[Q' + id + ']',
+    var prefix = getPrefix(id),
       subject = prefix + ' ' + params.question,
       body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
         params.choicesNumbered.join('\n') +
@@ -98,6 +98,10 @@ app.get('/view/:id', function(request, response) {
 });
 
 module.exports = app;
+
+function getPrefix(id) {
+  return '[Q' + id + ']';
+}
 
 function splitChoices(choices) {
   var output = [];
@@ -188,7 +192,7 @@ function sendEmail(from, recipients, subject, body, callback) {
 }
 
 function createHook(request, id, callback) {
-  var prefix = '[Q' + id + ']';
+  var prefix = getPrefix(id);
   var client = new contextio.Client({
     key: config.CONTEXTIO_KEY,
     secret: config.CONTEXTIO_SECRET
