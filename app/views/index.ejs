@@ -17,22 +17,7 @@
           </span>
 
           <form method="post" action="/main">
-            <div class="form-group">
-              <input type="email" name="email" id="email" class="form-control input-lg" placeholder="Your email">
-            </div>
-
-            <div class="form-group">
-              <input type="text" name="recipients" id="recipients" class="form-control input-lg" placeholder="Your recipients">
-            </div>
-
-            <div class="form-group">
-              <input type="text" name="question" id="question" class="form-control input-lg" placeholder="Your question">
-            </div>
-
-            <div class="form-group">
-              <textarea name="choices" id="choices" class="form-control input-lg" rows="6" placeholder="Your answer choices (one per line)"></textarea>
-            </div>
-
+            <%- form %>
             <button type="submit" class="btn btn-primary">Preview</button>
           </form>
         </div>

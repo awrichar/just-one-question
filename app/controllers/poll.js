@@ -4,40 +4,77 @@ var nodemailer = require('nodemailer');
 var config = require('../config');
 var questionModel = require('../models/question');
 var responseModel = require('../models/response');
+var questionForm = require('../forms/question');
 
 var app = express();
 app.set('views', './app/views');
 app.use(express.bodyParser());
 
+var bootstrapField = function (name, object) {
+  if (!Array.isArray(object.widget.classes)) { object.widget.classes = []; }
+  if (object.widget.classes.indexOf('form-control') === -1) {
+      object.widget.classes.push('form-control');
+  }
+
+  var label = object.labelHTML(name);
+  var error = object.error ? '<div class="help-block has-error">' + object.error + '</div>' : '';
+
+  var validationclass = object.value && !object.error ? 'has-success' : '';
+  validationclass = object.error ? 'has-error' : validationclass;
+
+  var widget = object.widget.toHTML(name, object);
+  return '<div class="form-group ' + validationclass + '">' + widget + error + '</div>';
+};
+
+function renderForm(form, response) {
+  response.render('index.ejs', {form: form.toHTML(bootstrapField)});
+}
+
 app.get('/', function(request, response) {
-  response.render('index.ejs');
+  renderForm(questionForm(), response);
 });
 
 app.post('/', function (request, response) {
-  response.render('preview.ejs', getQuestionParams(request.body));
-});
+  if (request.body.action == 'Send') {
+    var params = getQuestionParams(request.body);
 
-app.post('/send', function (request, response) {
-  var params = getQuestionParams(request.body);
+    createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
+      if (err) return errorResponse(response, 'Error inserting into database', err);
 
-  createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
-    if (err) return errorResponse(response, 'Error inserting into database', err);
+      var prefix = getPrefix(id),
+        subject = prefix + ' ' + params.question,
+        body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
+          params.choicesNumbered.join('\n') +
+          '\n\nPlease respond to this email with a single number indicating your choice.';
 
-    var prefix = getPrefix(id),
-      subject = prefix + ' ' + params.question,
-      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
-        params.choicesNumbered.join('\n') +
-        '\n\nPlease respond to this email with a single number indicating your choice.';
+      sendEmail(params.email, params.recipients, subject, body, function(err) {
+        if (err) return errorResponse(response, 'Error sending email', err);
 
-    sendEmail(params.email, params.recipients, subject, body, function(err) {
-      if (err) return errorResponse(response, 'Error sending email', err);
-
-      createHook(request, id, function(err) {
-        if (err) return errorResponse(response, 'Error creating email hook', err);
-        response.render('success.ejs');
+        createHook(request, id, function(err) {
+          if (err) return errorResponse(response, 'Error creating email hook', err);
+          response.render('success.ejs');
+        });
       });
     });
-  });
+  } else if (request.body.action == 'Edit') {
+    var form = questionForm().bind(request.body);
+    renderForm(form, response);
+  } else {
+    var form = questionForm();
+    form.handle(request, {
+      success: function(form) {
+        console.log("Success");
+        response.render('preview.ejs', getQuestionParams(request.body));
+      },
+      error: function(form) {
+        console.log("Error");
+        renderForm(form, response);
+      },
+      empty: function(form) {
+        console.log("Empty");
+      }
+    })
+  }
 });
 
 app.post('/response/:id', function (request, response) {
