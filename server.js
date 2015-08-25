@@ -14,10 +14,8 @@ var app = express();
 var server = http.createServer(app);
 var db = new sqlite3.Database('./db.sqlite3');
 
-app.use('/css', express.static('./client/css'));
-app.use('/js', express.static('./client/js'));
-app.use('/img', express.static('./client/img'));
-app.set('views', './client/views');
+app.use(express.static('./app/public'));
+app.set('views', './app/views');
 
 app.use(express.bodyParser());
 
