@@ -1,11 +1,7 @@
-var CONTEXTIO_KEY = 'auscnwj4';
-var CONTEXTIO_SECRET = 'l6iPLC55PdyiYxwI';
-var EMAIL_USER = 'just.one.question.app@gmail.com';
-var EMAIL_PASSWORD = 'bD0SzshyNBpV5Zt';
-
 var express = require('express');
 var contextio = require('contextio');
 var nodemailer = require('nodemailer');
+var config = require('../config');
 var questionModel = require('../models/question');
 var responseModel = require('../models/response');
 
@@ -82,14 +78,14 @@ function sendEmail(from, recipients, subject, body, callback) {
   var transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASSWORD,
+        user: config.EMAIL_USER,
+        pass: config.EMAIL_PASSWORD,
     }
   });
 
   var mailOptions = {
-    from: from + '<' + EMAIL_USER + '>',
-    replyTo: EMAIL_USER,
+    from: from + '<' + config.EMAIL_USER + '>',
+    replyTo: config.EMAIL_USER,
     to: recipients,
     subject: subject,
     text: body
@@ -104,16 +100,16 @@ function sendEmail(from, recipients, subject, body, callback) {
 function createHook(request, id, callback) {
   var prefix = '[Q' + id + ']';
   var client = new contextio.Client({
-    key: CONTEXTIO_KEY,
-    secret: CONTEXTIO_SECRET
+    key: config.CONTEXTIO_KEY,
+    secret: config.CONTEXTIO_SECRET
   });
 
-  getContextIOAccount(client, EMAIL_USER, function(err, ctxID) {
+  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
     if (err) return callback(err);
 
     var urlPrefix = request.protocol + '://' + request.get('host') + '/poll',
       hookOptions = {
-        filter_to: EMAIL_USER,
+        filter_to: config.EMAIL_USER,
         filter_subject: prefix,
         callback_url: urlPrefix + '/response/' + id,
         failure_notif_url: urlPrefix + '/failure/' + id
@@ -160,11 +156,11 @@ app.post('/response/:id', function (request, response) {
     messageID = request.body.message_data.message_id;
 
   var client = new contextio.Client({
-    key: CONTEXTIO_KEY,
-    secret: CONTEXTIO_SECRET
+    key: config.CONTEXTIO_KEY,
+    secret: config.CONTEXTIO_SECRET
   });
 
-  getContextIOAccount(client, EMAIL_USER, function(err, ctxID) {
+  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
     if (err) return logError('Error connecting to Context.IO', err);
 
     client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
