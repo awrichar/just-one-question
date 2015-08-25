@@ -6,7 +6,7 @@ exports.createMany = function(question_id, choices, callback) {
 
   db.parallelize(function() {
     for (var i=0; i<choices.length; i++) {
-      db.save(TABLE, {
+      db.insert(TABLE, {
         question_id: question_id,
         idx: i + 1,
         label: choices[i],
@@ -21,19 +21,11 @@ exports.createMany = function(question_id, choices, callback) {
 };
 
 exports.getCount = function(question_id, callback) {
-  var sql = 'SELECT COUNT(*) FROM ' + TABLE + ' WHERE question_id = ?';
-  db.get(sql, question_id, function(err, row) {
-    if (err) return callback(err);
-    callback(null, row['COUNT(*)']);
-  });
+  db.count(TABLE, {question_id: question_id}, callback);
 };
 
 exports.increment = function(question_id, idx, callback) {
-  var sql = 'UPDATE response SET count=count+1 WHERE question_id=? AND idx=?';
-  db.run(sql, question_id, idx, function(err) {
-    if (err) return callback(err);
-    callback(null, this.changes);
-  });
+  db.increment(TABLE, 'count', {question_id: question_id, idx: idx}, callback);
 };
 
 exports.list = function(question_id, callback) {
