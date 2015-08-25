@@ -24,9 +24,13 @@ function numberChoices(choices) {
   return output;
 }
 
-function errorResponse(response, msg, err) {
+function logError(msg, err) {
   if (err) console.log(msg + '\n' + err);
   else console.log(msg);
+}
+
+function errorResponse(response, msg, err) {
+  logError(msg, err);
   return response.render("error.ejs");
 }
 
@@ -43,7 +47,8 @@ app.post('/', function (request, response) {
     email: request.body.email,
     recipients: request.body.recipients,
     question: request.body.question,
-    choices: numberChoices(request.body.choices.split("\n"))
+    choices: request.body.choices,
+    choicesSplit: numberChoices(request.body.choices.split("\n"))
   });
 });
 
@@ -51,7 +56,8 @@ app.post('/send', function (request, response) {
   var from = request.body.email,
     recipients = request.body.recipients,
     question = request.body.question,
-    choices = request.body.choices;
+    choices = request.body.choices,
+    choicesSplit = numberChoices(request.body.choices.split("\n"));
 
   db.run("INSERT INTO question (owner, recipients, question, choices) VALUES (?, ?, ?, ?)",
     [from, recipients, question, choices],
@@ -62,7 +68,8 @@ app.post('/send', function (request, response) {
         prefix = "[Q" + id + "]",
         subject = prefix + " " + question,
         body = "You've been asked a question by " + from + ":\n" + question + "\n\n" +
-          choices + "\n\nPlease respond to this email with a single number indicating your choice.";
+          choicesSplit.join("\n") +
+          "\n\nPlease respond to this email with a single number indicating your choice.";
 
       var transporter = nodemailer.createTransport({
         service: 'Gmail',
@@ -111,7 +118,46 @@ app.post('/send', function (request, response) {
 
 app.post('/response/:id', function (request, response) {
   response.send();
-  console.log(response.body);
+
+  var pollID = request.params.id,
+    messageID = request.body.message_data.message_id;
+
+  var client = new contextio.Client({
+    key: CONTEXTIO_KEY,
+    secret: CONTEXTIO_SECRET
+  });
+
+  getContextIOAccount(client, EMAIL_USER, function(err, ctxID) {
+    if (err) return logError("Error connecting to Context.IO", err);
+
+    client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
+      if (err || !msg.body.length) logError("Error getting message body", err);
+
+      var body = msg.body[0]['content'],
+        result = body.match(/^\s*(\d+)/),
+        choice = result ? parseInt(result[1]) : null;
+
+      if (!choice || isNaN(choice) || choice < 1)
+        return logError("Error parsing response");
+
+      db.get("SELECT choices FROM question WHERE ROWID = ?", pollID, function(err, row) {
+        if (err) return logError("Error finding question", err);
+
+        var choices = row.choices.split("\n"),
+          numChoices = choices.length;
+
+        if (choice > numChoices) return logError("Choice is out of range");
+
+        db.run("INSERT INTO response (question_id, choice) VALUES (?, ?)",
+          [pollID, choice],
+          function (err) {
+            if (err) return logError("Error writing response", err);
+            console.log("Added response (" + choice + ") to question (" + pollID + ")");
+          }
+        );
+      });
+    });
+  });
 });
 
 module.exports = app

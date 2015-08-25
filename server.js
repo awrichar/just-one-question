@@ -4,9 +4,13 @@ var express = require('express');
 var sqlite3 = require('sqlite3');
 
 var app = express();
-
 var db = new sqlite3.Database('./db.sqlite3');
+
 db.run("CREATE TABLE question (owner TEXT, recipients TEXT, question TEXT, choices TEXT)", function (err) {
+  // do nothing
+});
+
+db.run("CREATE TABLE response (question_id INTEGER, choice TEXT)", function (err) {
   // do nothing
 });
 

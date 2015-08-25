@@ -39,10 +39,10 @@
               <tr>
                 <th>Choices</th>
                 <td>
-                  <% for(var i=0; i<choices.length; i++) { %>
-                    <%= choices[i] %><br />
+                  <% for(var i=0; i<choicesSplit.length; i++) { %>
+                    <%= choicesSplit[i] %><br />
                   <% } %>
-                  <input type="hidden" name="choices" value="<%= choices.join("\n") %>" />
+                  <input type="hidden" name="choices" value="<%= choices %>" />
                 </td>
               </tr>
             </table>
