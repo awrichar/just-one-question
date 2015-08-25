@@ -6,11 +6,11 @@ var sqlite3 = require('sqlite3');
 var app = express();
 var db = new sqlite3.Database('./db.sqlite3');
 
-db.run("CREATE TABLE question (owner TEXT, recipients TEXT, question TEXT, choices TEXT)", function (err) {
+db.run("CREATE TABLE question (id INTEGER PRIMARY KEY, owner TEXT, recipients TEXT, question TEXT)", function (err) {
   // do nothing
 });
 
-db.run("CREATE TABLE response (question_id INTEGER, choice TEXT)", function (err) {
+db.run("CREATE TABLE response (question_id INTEGER, idx INTEGER, label TEXT, count INTEGER DEFAULT 0)", function (err) {
   // do nothing
 });
 
