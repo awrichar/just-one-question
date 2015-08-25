@@ -197,7 +197,7 @@ function createHook(request, id, callback) {
   getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
     if (err) return callback(err);
 
-    var urlPrefix = request.protocol + '://' + request.get('host') + '/poll',
+    var urlPrefix = request.protocol + '://' + request.get('host') + '/main',
       hookOptions = {
         filter_to: config.EMAIL_USER,
         filter_subject: prefix,
