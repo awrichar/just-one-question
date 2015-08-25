@@ -6,7 +6,7 @@ app.set('views', './app/views');
 app.use('/poll', require('./poll'))
 
 app.get('/', function(request, response) {
-  response.render("index.ejs");
+  response.render('index.ejs');
 });
 
 module.exports = app

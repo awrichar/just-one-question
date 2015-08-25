@@ -1,7 +1,7 @@
-var CONTEXTIO_KEY = "auscnwj4";
-var CONTEXTIO_SECRET = "l6iPLC55PdyiYxwI";
-var EMAIL_USER = "just.one.question.app@gmail.com";
-var EMAIL_PASSWORD = "bD0SzshyNBpV5Zt";
+var CONTEXTIO_KEY = 'auscnwj4';
+var CONTEXTIO_SECRET = 'l6iPLC55PdyiYxwI';
+var EMAIL_USER = 'just.one.question.app@gmail.com';
+var EMAIL_PASSWORD = 'bD0SzshyNBpV5Zt';
 
 var express = require('express');
 var sqlite3 = require('sqlite3');
@@ -18,7 +18,7 @@ var db = new sqlite3.Database('./db.sqlite3');
 
 function splitChoices(choices) {
   var output = [];
-  choices = choices.split("\n");
+  choices = choices.split('\n');
 
   for (var i=0; i<choices.length; i++) {
     output.push(choices[i].trim());
@@ -31,7 +31,7 @@ function numberChoices(choices) {
   var output = [];
 
   for (var i=0; i<choices.length; i++) {
-    output.push((i+1) + ") " + choices[i]);
+    output.push((i+1) + ') ' + choices[i]);
   }
 
   return output;
@@ -59,7 +59,7 @@ function logError(msg, err) {
 
 function errorResponse(response, msg, err) {
   logError(msg, err);
-  return response.render("error.ejs");
+  return response.render('error.ejs');
 }
 
 function getContextIOAccount(client, email, callback) {
@@ -91,7 +91,7 @@ function sendEmail(from, recipients, subject, body, callback) {
   });
 
   var mailOptions = {
-    from: from + "<" + EMAIL_USER + ">",
+    from: from + '<' + EMAIL_USER + '>',
     replyTo: EMAIL_USER,
     to: recipients,
     subject: subject,
@@ -105,7 +105,7 @@ function sendEmail(from, recipients, subject, body, callback) {
 }
 
 function createHook(request, id, callback) {
-  var prefix = "[Q" + id + "]";
+  var prefix = '[Q' + id + ']';
   var client = new contextio.Client({
     key: CONTEXTIO_KEY,
     secret: CONTEXTIO_SECRET
@@ -130,27 +130,27 @@ function createHook(request, id, callback) {
 }
 
 app.post('/', function (request, response) {
-  response.render("preview.ejs", getQuestionParams(request.body));
+  response.render('preview.ejs', getQuestionParams(request.body));
 });
 
 app.post('/send', function (request, response) {
   var params = getQuestionParams(request.body);
 
   createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
-    if (err) return errorResponse(response, "Error inserting into database", err);
+    if (err) return errorResponse(response, 'Error inserting into database', err);
 
-    var prefix = "[Q" + id + "]",
-      subject = prefix + " " + params.question,
-      body = "You've been asked a question by " + params.email + ":\n" + params.question + "\n\n" +
-        params.choicesNumbered.join("\n") +
-        "\n\nPlease respond to this email with a single number indicating your choice.";
+    var prefix = '[Q' + id + ']',
+      subject = prefix + ' ' + params.question,
+      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
+        params.choicesNumbered.join('\n') +
+        '\n\nPlease respond to this email with a single number indicating your choice.';
 
     sendEmail(params.email, params.recipients, subject, body, function(err) {
-      if (err) return errorResponse(response, "Error sending email", err);
+      if (err) return errorResponse(response, 'Error sending email', err);
 
       createHook(request, id, function(err) {
-        if (err) return errorResponse(response, "Error creating email hook", err);
-        response.render("success.ejs");
+        if (err) return errorResponse(response, 'Error creating email hook', err);
+        response.render('success.ejs');
       });
     });
   });
@@ -168,29 +168,29 @@ app.post('/response/:id', function (request, response) {
   });
 
   getContextIOAccount(client, EMAIL_USER, function(err, ctxID) {
-    if (err) return logError("Error connecting to Context.IO", err);
+    if (err) return logError('Error connecting to Context.IO', err);
 
     client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
-      if (err || !msg.body.length) logError("Error getting message body", err);
+      if (err || !msg.body.length) logError('Error getting message body', err);
 
       var body = msg.body[0]['content'],
         result = body.match(/^\s*(\d+)/),
         choice = result ? parseInt(result[1]) : null;
 
       if (!choice || isNaN(choice) || choice < 1)
-        return logError("Error parsing response");
+        return logError('Error parsing response');
 
-      db.get("SELECT COUNT(*) FROM response WHERE question_id = ?", pollID, function(err, row) {
-        if (err) return logError("Error finding question", err);
+      db.get('SELECT COUNT(*) FROM response WHERE question_id = ?', pollID, function(err, row) {
+        if (err) return logError('Error finding question', err);
 
         var count = row['COUNT(*)'];
-        if (choice > count) return logError("Choice is out of range");
+        if (choice > count) return logError('Choice is out of range');
 
-        db.run("UPDATE response SET count=count+1 WHERE question_id=? AND idx=?",
+        db.run('UPDATE response SET count=count+1 WHERE question_id=? AND idx=?',
           [pollID, choice],
           function (err) {
-            if (err || !this.changes) return logError("Error writing response", err);
-            console.log("Added response (" + choice + ") to question (" + pollID + ")");
+            if (err || !this.changes) return logError('Error writing response', err);
+            console.log('Added response (' + choice + ') to question (' + pollID + ')');
           }
         );
       });
