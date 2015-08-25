@@ -35,3 +35,7 @@ exports.increment = function(question_id, idx, callback) {
     callback(null, this.changes);
   });
 }
+
+exports.list = function(question_id, callback) {
+  db.fetch(TABLE, {question_id: question_id}, 'idx', callback);
+}

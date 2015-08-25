@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question - Results</title>
+    <% include partials/head %>
+  </head>
+
+  <body>
+    <% include partials/nav %>
+
+    <div class="container main">
+      <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+          <h1><%= question.question %></h1>
+
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Response</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% responses.forEach(function(response) {%>
+              <tr>
+                <td><%= response.label %></td>
+                <td><%= response.count %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <% include partials/foot %>
+  </body>
+</html>

@@ -4,7 +4,6 @@ var EMAIL_USER = 'just.one.question.app@gmail.com';
 var EMAIL_PASSWORD = 'bD0SzshyNBpV5Zt';
 
 var express = require('express');
-var sqlite3 = require('sqlite3');
 var contextio = require('contextio');
 var nodemailer = require('nodemailer');
 var questionModel = require('../models/question');
@@ -13,8 +12,6 @@ var responseModel = require('../models/response');
 var app = express();
 app.set('views', './app/views');
 app.use(express.bodyParser());
-
-var db = new sqlite3.Database('./db.sqlite3');
 
 function splitChoices(choices) {
   var output = [];
@@ -189,6 +186,26 @@ app.post('/response/:id', function (request, response) {
           console.log('Added response (' + choice + ') to question (' + pollID + ')');
         });
       });
+    });
+  });
+});
+
+app.get('/view', function(request, response) {
+  questionModel.list(function(err, rows) {
+    if (err) return errorResponse(response, 'Error listing results', err);
+    response.render('results.ejs', {questions: rows});
+  });
+});
+
+app.get('/view/:id', function(request, response) {
+  var pollID = request.params.id;
+
+  questionModel.get(pollID, function(err, question) {
+    if (err) return errorResponse(response, 'Error fetching question', err);
+
+    responseModel.list(pollID, function(err, responses) {
+      if (err) return errorResponse(response, 'Error fetching responses', err);
+      response.render('result.ejs', {question: question, responses: responses});
     });
   });
 });
