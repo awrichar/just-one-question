@@ -97,8 +97,8 @@ function getQuestionParams(request) {
   };
 }
 
-function createQuestion(owner, recipients, q, choices, callback) {
-  questionModel.create(owner, recipients, q, function(err, id) {
+function createQuestion(user_id, recipients, q, choices, callback) {
+  questionModel.create(user_id, recipients, q, function(err, id) {
       if (err) return callback(err);
 
       responseModel.createMany(id, choices, function(err) {
@@ -176,7 +176,7 @@ function checkPreviewForm(request, response, forceShow) {
 function sendQuestion(request, response) {
   var params = getQuestionParams(request);
 
-  createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
+  createQuestion(request.user.id, params.recipients, params.question, params.choicesSplit, function(err, id) {
     if (err) return error.response(response, 'Error inserting into database', err);
 
     var prefix = webhook.getPrefix(id),

@@ -8,7 +8,7 @@ var router = express.Router();
 module.exports = router;
 
 router.get('/', auth.requireLogin, function(request, response) {
-  questionModel.list(request.user.username, function(err, rows) {
+  questionModel.list(request.user.id, function(err, rows) {
     if (err) return error.response(response, 'Error listing results', err);
     response.render('results.ejs', {questions: rows});
   });
@@ -18,7 +18,7 @@ router.get('/:id', auth.requireLogin, function(request, response) {
   questionModel.get(request.params.id, function(err, question) {
     if (err) return error.response(response, 'Error fetching question', err);
 
-    if (question.owner != request.user.username) {
+    if (question.user_id != request.user.id) {
       return error.response(response, 'Not allowed to access this question');
     }
 
