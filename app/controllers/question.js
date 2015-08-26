@@ -1,13 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var contextio = require('contextio');
-var config = require('../config');
 var email = require('../helpers/email');
 var questionModel = require('../models/question');
 var responseModel = require('../models/response');
 var questionForm = require('../forms/question');
 var userModel = require('../models/user');
 var error = require('../helpers/error');
+var webhook = require('../helpers/webhook');
 
 var router = express.Router();
 module.exports = router;
@@ -57,47 +56,6 @@ router.post('/', function (request, response) {
   }
 });
 
-router.post('/response/:id', function (request, response) {
-  response.send();
-
-  var pollID = request.params.id,
-    messageID = request.body.message_data.message_id;
-
-  var client = new contextio.Client({
-    key: config.CONTEXTIO_KEY,
-    secret: config.CONTEXTIO_SECRET
-  });
-
-  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
-    if (err) return error.log('Error connecting to Context.IO', err);
-
-    client.accounts(ctxID).messages(messageID).body().get({type: 'text/plain'}, function(err, msg) {
-      if (err || !msg.body.length) error.log('Error getting message body', err);
-
-      var body = msg.body[0]['content'],
-        result = body.match(/^\s*(\d+)/),
-        choice = result ? parseInt(result[1]) : null;
-
-      if (!choice || isNaN(choice) || choice < 1)
-        return error.log('Error parsing response');
-
-      responseModel.getCount(pollID, function(err, count) {
-        if (err) return error.log('Error finding question', err);
-        if (choice > count) return error.log('Choice is out of range');
-
-        responseModel.increment(pollID, choice, function(err, changes) {
-          if (err || !changes) return error.log('Error writing response', err);
-          console.log('Added response (' + choice + ') to question (' + pollID + ')');
-        });
-      });
-    });
-  });
-});
-
-function getPrefix(id) {
-  return '[Q' + id + ']';
-}
-
 function splitChoices(choices) {
   var output = [];
   choices = choices.split('\n');
@@ -134,13 +92,6 @@ function getQuestionParams(body) {
   };
 }
 
-function getContextIOAccount(client, email, callback) {
-  client.accounts().get({email: email}, function(err, response) {
-    if (err || !response.body.length) return callback(err);
-    callback(null, response.body[0]['id']);
-  });
-}
-
 function createQuestion(owner, recipients, q, choices, callback) {
   questionModel.create(owner, recipients, q, function(err, id) {
       if (err) return callback(err);
@@ -151,31 +102,6 @@ function createQuestion(owner, recipients, q, choices, callback) {
       });
     }
   );
-}
-
-function createHook(request, id, callback) {
-  var prefix = getPrefix(id);
-  var client = new contextio.Client({
-    key: config.CONTEXTIO_KEY,
-    secret: config.CONTEXTIO_SECRET
-  });
-
-  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
-    if (err) return callback(err);
-
-    var urlPrefix = request.protocol + '://' + request.get('host') + '/main',
-      hookOptions = {
-        filter_to: config.EMAIL_USER,
-        filter_subject: prefix,
-        callback_url: urlPrefix + '/response/' + id,
-        failure_notif_url: urlPrefix + '/failure/' + id
-      };
-
-    client.accounts(ctxID).webhooks().post(hookOptions, function(err) {
-      if (err) return callback(err);
-      callback(null);
-    });
-  });
 }
 
 function renderEditForm(form, response) {
@@ -238,7 +164,7 @@ function sendQuestion(request, response) {
   createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
     if (err) return error.response(response, 'Error inserting into database', err);
 
-    var prefix = getPrefix(id),
+    var prefix = webhook.getPrefix(id),
       subject = prefix + ' ' + params.question,
       body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
         params.choicesNumbered.join('\n') +
@@ -247,7 +173,7 @@ function sendQuestion(request, response) {
     email.send(params.email, params.recipients, subject, body, function(err) {
       if (err) return error.response(response, 'Error sending email', err);
 
-      createHook(request, id, function(err) {
+      webhook.createHook(request, id, function(err) {
         if (err) return error.response(response, 'Error creating email hook', err);
         response.render('success.ejs');
       });
