@@ -15,16 +15,14 @@ router.get('/', auth.requireLogin, function(request, response) {
 });
 
 router.get('/:id', auth.requireLogin, function(request, response) {
-  var pollID = request.params.id;
-
-  questionModel.get(pollID, function(err, question) {
+  questionModel.get(request.params.id, function(err, question) {
     if (err) return error.response(response, 'Error fetching question', err);
 
     if (question.owner != request.user.username) {
       return error.response(response, 'Not allowed to access this question');
     }
 
-    responseModel.list(pollID, function(err, responses) {
+    responseModel.list(request.params.id, function(err, responses) {
       if (err) return error.response(response, 'Error fetching responses', err);
       response.render('result.ejs', {question: question, responses: responses});
     });
