@@ -14,11 +14,19 @@ router.get('/login', function(request, response) {
   response.render('login.ejs');
 });
 
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/auth/login',
-  failureFlash: false,
-}));
+router.post('/login', function(request, response, callback) {
+  var next = request.query.next || '/';
+
+  passport.authenticate('local', function(err, user, info) {
+    if (err) return callback(err);
+    if (!user) return response.redirect('/login');
+
+    request.login(user, function(err) {
+      if (err) return callback(err);
+      return response.redirect(next);
+    });
+  })(request, response, callback);
+});
 
 router.get('/logout', function(request, response) {
   request.logout();

@@ -9,8 +9,8 @@ exports.create = function(owner, recipients, question, callback) {
   }, callback);
 };
 
-exports.list = function(callback) {
-  db.fetch(TABLE, callback);
+exports.list = function(owner, callback) {
+  db.fetch(TABLE, {owner: owner}, callback);
 };
 
 exports.get = function(id, callback) {

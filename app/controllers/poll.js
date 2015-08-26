@@ -7,6 +7,7 @@ var questionModel = require('../models/question');
 var responseModel = require('../models/response');
 var questionForm = require('../forms/question');
 var userModel = require('../models/user');
+var auth = require('../helpers/auth');
 
 var router = express.Router();
 module.exports = router;
@@ -93,18 +94,22 @@ router.post('/response/:id', function (request, response) {
   });
 });
 
-router.get('/view', function(request, response) {
-  questionModel.list(function(err, rows) {
+router.get('/view', auth.requireLogin, function(request, response) {
+  questionModel.list(request.user.username, function(err, rows) {
     if (err) return errorResponse(response, 'Error listing results', err);
     response.render('results.ejs', {questions: rows});
   });
 });
 
-router.get('/view/:id', function(request, response) {
+router.get('/view/:id', auth.requireLogin, function(request, response) {
   var pollID = request.params.id;
 
   questionModel.get(pollID, function(err, question) {
     if (err) return errorResponse(response, 'Error fetching question', err);
+
+    if (question.owner != request.user.username) {
+      return errorResponse(response, 'Not allowed to access this question');
+    }
 
     responseModel.list(pollID, function(err, responses) {
       if (err) return errorResponse(response, 'Error fetching responses', err);

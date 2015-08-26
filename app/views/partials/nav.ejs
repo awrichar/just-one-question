@@ -9,5 +9,8 @@
   </div>
 
   <a href="/">Home</a>
-  <a href="/main/view">Results</a>
+
+  <% if (user) { %>
+    <a href="/main/view">Results</a>
+  <% } %>
 </nav>

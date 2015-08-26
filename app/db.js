@@ -107,7 +107,7 @@ exports.fetch = function(table, query, orderBy, callback) {
 
   if (typeof orderBy === 'function') {
     callback = orderBy;
-    orderBy = query;
+    orderBy = null;
   }
 
   var select = buildSelect(table, query, orderBy);
