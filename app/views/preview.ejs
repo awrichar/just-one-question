@@ -49,7 +49,7 @@
                 Your question is ready to send! You'll need to create a password so you can view the results.
               </span>
               <div class="form-group col-md-6 col-md-offset-3">
-                <input type="password" name="password" class="form-control" placeholder="Password" />
+                <input type="password" name="regPassword" class="form-control" placeholder="Password" />
               </div>
             <% } else if (step == 'confirm') { %>
               <span class="help-block">
@@ -58,11 +58,18 @@
               <div class="form-group col-md-6 col-md-offset-3">
                 <input type="text" name="code" class="form-control" placeholder="Confirmation code" />
               </div>
+            <% } else if (step == 'login') { %>
+              <span class="help-block">
+                Please enter your password to login.
+              </span>
+              <div class="form-group col-md-6 col-md-offset-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" />
+              </div>
             <% } %>
 
             <div class="form-group col-md-12">
               <input type="submit" class="btn btn-default" name="action" value="Edit"/>
-              <% if (step == 'register') { %>
+              <% if (step == 'register' || step == 'confirm') { %>
                 <input type="submit" class="btn btn-primary" name="action" value="Continue"/>
               <% } else { %>
                 <input type="submit" class="btn btn-primary" name="action" value="Send"/>

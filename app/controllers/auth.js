@@ -2,8 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
 var passportLocal = require('passport-local');
-var hash = require('password-hash');
 var userModel = require('../models/user');
+var helper = require('../helpers/auth');
 
 var router = express.Router();
 module.exports = router;
@@ -43,13 +43,4 @@ passport.deserializeUser(function(username, callback) {
   });
 });
 
-passport.use(new passportLocal.Strategy(
-  function(username, password, callback) {
-    userModel.get(username, function(err, user) {
-      if (err) callback(err);
-      else if (!user) callback(null, false);
-      else if (!hash.verify(password, user.password)) callback(null, false);
-      else callback(null, user);
-    });
-  }
-));
+passport.use(new passportLocal.Strategy(helper.checkPassword));

@@ -6,6 +6,7 @@ var responseModel = require('../models/response');
 var questionForm = require('../forms/question');
 var userModel = require('../models/user');
 var error = require('../helpers/error');
+var auth = require('../helpers/auth');
 var webhook = require('../helpers/webhook');
 
 var router = express.Router();
@@ -30,17 +31,20 @@ var bootstrapField = function (name, object) {
 };
 
 router.get('/', function(request, response) {
-  renderEditForm(questionForm(), response);
+  var hideEmail = request.user ? true : false;
+  renderEditForm(questionForm({hideEmail: hideEmail}), response);
 });
 
 router.post('/', function (request, response) {
+  var hideEmail = request.user ? true : false;
+
   if (request.body.action == 'Edit') {
-    var form = questionForm().bind(request.body);
+    var form = questionForm({hideEmail: hideEmail}).bind(request.body);
     renderEditForm(form, response);
   } else if (request.body.preview) {
     checkPreviewForm(request, response);
   } else {
-    questionForm().handle(request, {
+    questionForm({hideEmail: hideEmail}).handle(request, {
       success: function(form) {
         console.log("Success");
         checkPreviewForm(request, response, true);
@@ -77,13 +81,14 @@ function numberChoices(choices) {
   return output;
 }
 
-function getQuestionParams(body) {
-  var choices = body.choices,
+function getQuestionParams(request) {
+  var body = request.body,
+    choices = body.choices,
     choicesSplit = splitChoices(choices),
     choicesNumbered = numberChoices(choicesSplit);
 
   return {
-    email: body.email,
+    email: body.email || request.user.username,
     recipients: body.recipients,
     question: body.question,
     choices: choices,
@@ -109,7 +114,7 @@ function renderEditForm(form, response) {
 }
 
 function renderPreviewForm(request, response, step) {
-  var params = getQuestionParams(request.body);
+  var params = getQuestionParams(request);
   params['step'] = step;
   response.render('preview.ejs', params);
 }
@@ -133,10 +138,11 @@ function sendConfirmation(to, code, callback) {
 }
 
 function checkPreviewForm(request, response, forceShow) {
-  var email = request.body.email;
+  var loggedIn = request.user ? true : false;
+  var email = request.body.email || request.user.username;
 
-  if (request.body.password) {
-    createUser(email, request.body.password, function(err) {
+  if (request.body.regPassword) {
+    createUser(email, request.body.regPassword, function(err) {
       if (err) return error.response(response, 'Error creating user', err);
       renderPreviewForm(request, response, 'confirm');
     });
@@ -144,22 +150,31 @@ function checkPreviewForm(request, response, forceShow) {
     userModel.confirm(email, request.body.code, function(err, success) {
       if (err) error.response(response, 'Error confirming user', err);
       else if (!success) renderPreviewForm(request, response, 'confirm');
+      else renderPreviewForm(request, response, 'login');
+    });
+  } else if (request.body.password) {
+    auth.checkAndLogin(request, email, request.body.password, function(err, user) {
+      if (err) error.response(response, 'Error logging in', err);
+      else if (!user) renderPreviewForm(request, response, 'login');
       else sendQuestion(request, response);
     });
-  } else {
+  } else if (!loggedIn) {
     userModel.get(email, function(err, user) {
       if (err) return error.response(response, 'Error looking up user', err);
 
       if (!user) renderPreviewForm(request, response, 'register');
       else if (user.confirmation_code) renderPreviewForm(request, response, 'confirm');
-      else if (forceShow) renderPreviewForm(request, response);
-      else sendQuestion(request, response);
+      else renderPreviewForm(request, response, 'login');
     });
+  } else if (forceShow) {
+    renderPreviewForm(request, response);
+  } else {
+    sendQuestion(request, response);
   }
 }
 
 function sendQuestion(request, response) {
-  var params = getQuestionParams(request.body);
+  var params = getQuestionParams(request);
 
   createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
     if (err) return error.response(response, 'Error inserting into database', err);
