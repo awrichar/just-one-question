@@ -1,4 +1,5 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 var contextio = require('contextio');
 var nodemailer = require('nodemailer');
 var config = require('../config');
@@ -8,7 +9,7 @@ var questionForm = require('../forms/question');
 
 var app = express();
 app.set('views', './app/views');
-app.use(express.bodyParser());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 var bootstrapField = function (name, object) {
   if (!Array.isArray(object.widget.classes)) { object.widget.classes = []; }
