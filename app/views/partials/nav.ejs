@@ -1,16 +1,25 @@
 <nav class="main-nav">
-  <div class="account-options">
-    <% if (user) { %>
-      <span><%= user.username %></span>
-      <a href="/auth/logout">Logout</a>
-    <% } else { %>
-      <a href="/auth/login">Login</a>
-    <% } %>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <div class="account-options">
+          <% if (user) { %>
+            <span><%= user.username %></span>
+          <% } %>
+
+          <% if (user) { %>
+            <a href="/auth/logout">Logout</a>
+          <% } else { %>
+            <a href="/auth/login">Login</a>
+          <% } %>
+        </div>
+
+        <a href="/">Home</a>
+
+        <% if (user) { %>
+          <a href="/results">Results</a>
+        <% } %>
+      </div>
+    </div>
   </div>
-
-  <a href="/">Home</a>
-
-  <% if (user) { %>
-    <a href="/results">Results</a>
-  <% } %>
 </nav>

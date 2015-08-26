@@ -1,16 +1,22 @@
 .main-nav {
+    position: relative;
     background: #666;
     color: #fff;
     font-size: 20px;
+    font-weight: 200;
     padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 .main-nav a {
     color: #fff;
+    margin: 0 10px;
 }
 
 .main-nav .account-options {
-    float: right;
+    position: absolute;
+    top: 0px;
+    right: 5px;
 }
 
 .main {
