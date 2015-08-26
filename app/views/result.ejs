@@ -30,10 +30,42 @@
               <% }) %>
             </tbody>
           </table>
+
+          <canvas id="myChart" width="400" height="400"></canvas>
         </div>
       </div>
     </div>
 
     <% include partials/foot %>
+    <script type="text/javascript">
+      $(function(){
+        var colors = [
+          '#4661EE',
+          '#EC5657',
+          '#1BCDD1',
+          '#8FAABB',
+          '#B08BEB',
+          '#3EA0DD',
+          '#F5A52A',
+          '#23BFAA',
+          '#FAA586',
+          '#EB8CC6',
+        ];
+
+        var responses = <%- JSON.stringify(responses) %>;
+        var data = [];
+
+        for(var i=0; i<responses.length; i++) {
+          data.push({
+            label: responses[i].label,
+            value: responses[i].count,
+            color: colors[i % 10],
+          });
+        }
+
+        var ctx = document.getElementById("myChart").getContext("2d");
+        var myNewChart = new Chart(ctx).Pie(data);
+      });
+    </script>
   </body>
 </html>
