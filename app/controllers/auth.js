@@ -19,7 +19,7 @@ router.post('/login', function(request, response, callback) {
 
   passport.authenticate('local', function(err, user, info) {
     if (err) return callback(err);
-    if (!user) return response.redirect('/login');
+    if (!user) return response.redirect('/auth/login');
 
     request.login(user, function(err) {
       if (err) return callback(err);
