@@ -1,11 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var contextio = require('contextio');
-var nodemailer = require('nodemailer');
 var config = require('../config');
+var email = require('../helpers/email');
 var questionModel = require('../models/question');
 var responseModel = require('../models/response');
 var questionForm = require('../forms/question');
+var userModel = require('../models/user');
 
 var app = express();
 app.set('views', './app/views');
@@ -27,54 +28,30 @@ var bootstrapField = function (name, object) {
   return '<div class="form-group ' + validationclass + '">' + widget + error + '</div>';
 };
 
-function renderForm(form, response) {
-  response.render('index.ejs', {form: form.toHTML(bootstrapField)});
-}
-
 app.get('/', function(request, response) {
-  renderForm(questionForm(), response);
+  renderEditForm(questionForm(), response);
 });
 
 app.post('/', function (request, response) {
-  if (request.body.action == 'Send') {
-    var params = getQuestionParams(request.body);
-
-    createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
-      if (err) return errorResponse(response, 'Error inserting into database', err);
-
-      var prefix = getPrefix(id),
-        subject = prefix + ' ' + params.question,
-        body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
-          params.choicesNumbered.join('\n') +
-          '\n\nPlease respond to this email with a single number indicating your choice.';
-
-      sendEmail(params.email, params.recipients, subject, body, function(err) {
-        if (err) return errorResponse(response, 'Error sending email', err);
-
-        createHook(request, id, function(err) {
-          if (err) return errorResponse(response, 'Error creating email hook', err);
-          response.render('success.ejs');
-        });
-      });
-    });
-  } else if (request.body.action == 'Edit') {
+  if (request.body.action == 'Edit') {
     var form = questionForm().bind(request.body);
-    renderForm(form, response);
+    renderEditForm(form, response);
+  } else if (request.body.preview) {
+    checkPreviewForm(request, response);
   } else {
-    var form = questionForm();
-    form.handle(request, {
+    questionForm().handle(request, {
       success: function(form) {
         console.log("Success");
-        response.render('preview.ejs', getQuestionParams(request.body));
+        checkPreviewForm(request, response, true);
       },
       error: function(form) {
         console.log("Error");
-        renderForm(form, response);
+        renderEditForm(form, response);
       },
       empty: function(form) {
         console.log("Empty");
       }
-    })
+    });
   }
 });
 
@@ -206,29 +183,6 @@ function createQuestion(owner, recipients, q, choices, callback) {
   );
 }
 
-function sendEmail(from, recipients, subject, body, callback) {
-  var transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: config.EMAIL_USER,
-        pass: config.EMAIL_PASSWORD,
-    }
-  });
-
-  var mailOptions = {
-    from: from + '<' + config.EMAIL_USER + '>',
-    replyTo: config.EMAIL_USER,
-    to: recipients,
-    subject: subject,
-    text: body
-  };
-
-  transporter.sendMail(mailOptions, function(err, info) {
-    if (err) return callback(err);
-    callback(null);
-  });
-}
-
 function createHook(request, id, callback) {
   var prefix = getPrefix(id);
   var client = new contextio.Client({
@@ -250,6 +204,83 @@ function createHook(request, id, callback) {
     client.accounts(ctxID).webhooks().post(hookOptions, function(err) {
       if (err) return callback(err);
       callback(null);
+    });
+  });
+}
+
+function renderEditForm(form, response) {
+  response.render('index.ejs', {form: form.toHTML(bootstrapField)});
+}
+
+function renderPreviewForm(request, response, step) {
+  var params = getQuestionParams(request.body);
+  params['step'] = step;
+  response.render('preview.ejs', params);
+}
+
+function createUser(username, password, callback) {
+  userModel.create(username, password, function(err, user) {
+    if (err) return callback(err);
+    sendConfirmation(username, user.confirmation_code, function(err) {
+      if (err) return callback(err);
+      callback(null);
+    });
+  });
+}
+
+function sendConfirmation(to, code, callback) {
+  var body = 'Thanks for signing up with Just One Question. Please confirm your account using the code ' + code + '.';
+  email.send('Just One Question', [to], 'Confirm your account', body, function(err) {
+    if (err) return callback(err);
+    callback(null);
+  });
+}
+
+function checkPreviewForm(request, response, forceShow) {
+  var email = request.body.email;
+
+  if (request.body.password) {
+    createUser(email, request.body.password, function(err) {
+      if (err) return errorResponse(response, 'Error creating user', err);
+      renderPreviewForm(request, response, 'confirm');
+    });
+  } else if (request.body.code) {
+    userModel.confirm(email, request.body.code, function(err, success) {
+      if (err) errorResponse(response, 'Error confirming user', err);
+      else if (!success) renderPreviewForm(request, response, 'confirm');
+      else sendQuestion(request, response);
+    });
+  } else {
+    userModel.get(email, function(err, user) {
+      if (err) return errorResponse(response, 'Error looking up user', err);
+
+      if (!user) renderPreviewForm(request, response, 'register');
+      else if (user.confirmation_code) renderPreviewForm(request, response, 'confirm');
+      else if (forceShow) renderPreviewForm(request, response);
+      else sendQuestion(request, response);
+    });
+  }
+}
+
+function sendQuestion(request, response) {
+  var params = getQuestionParams(request.body);
+
+  createQuestion(params.email, params.recipients, params.question, params.choicesSplit, function(err, id) {
+    if (err) return errorResponse(response, 'Error inserting into database', err);
+
+    var prefix = getPrefix(id),
+      subject = prefix + ' ' + params.question,
+      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
+        params.choicesNumbered.join('\n') +
+        '\n\nPlease respond to this email with a single number indicating your choice.';
+
+    email.send(params.email, params.recipients, subject, body, function(err) {
+      if (err) return errorResponse(response, 'Error sending email', err);
+
+      createHook(request, id, function(err) {
+        if (err) return errorResponse(response, 'Error creating email hook', err);
+        response.render('success.ejs');
+      });
     });
   });
 }
