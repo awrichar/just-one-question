@@ -1,7 +1,7 @@
 var nodemailer = require('nodemailer');
 var config = require('../config');
 
-exports.send = function(fromName, recipients, subject, body, callback) {
+exports.send = function(fromName, to, bcc, subject, body, callback) {
   var transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
@@ -13,7 +13,8 @@ exports.send = function(fromName, recipients, subject, body, callback) {
   var mailOptions = {
     from: fromName + '<' + config.EMAIL_USER + '>',
     replyTo: config.EMAIL_USER,
-    to: recipients,
+    to: to,
+    bcc: bcc,
     subject: subject,
     text: body
   };

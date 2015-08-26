@@ -131,7 +131,7 @@ function createUser(username, password, callback) {
 
 function sendConfirmation(to, code, callback) {
   var body = 'Thanks for signing up with Just One Question. Please confirm your account using the code ' + code + '.';
-  email.send('Just One Question', [to], 'Confirm your account', body, function(err) {
+  email.send('Just One Question', [to], [], 'Confirm your account', body, function(err) {
     if (err) return callback(err);
     callback(null);
   });
@@ -185,7 +185,7 @@ function sendQuestion(request, response) {
         params.choicesNumbered.join('\n') +
         '\n\nPlease respond to this email with a single number indicating your choice.';
 
-    email.send(params.email, params.recipients, subject, body, function(err) {
+    email.send(params.email, [], params.recipients, subject, body, function(err) {
       if (err) return error.response(response, 'Error sending email', err);
 
       webhook.createHook(request, id, function(err) {
