@@ -1,11 +1,16 @@
 .main-nav {
     background: #666;
+    color: #fff;
     font-size: 20px;
     padding: 5px;
 }
 
 .main-nav a {
     color: #fff;
+}
+
+.main-nav .account-options {
+    float: right;
 }
 
 .main {

@@ -1,4 +1,13 @@
 <nav class="main-nav">
+  <div class="account-options">
+    <% if (user) { %>
+      <span><%= user.username %></span>
+      <a href="/auth/logout">Logout</a>
+    <% } else { %>
+      <a href="/auth/login">Login</a>
+    <% } %>
+  </div>
+
   <a href="/">Home</a>
   <a href="/main/view">Results</a>
 </nav>

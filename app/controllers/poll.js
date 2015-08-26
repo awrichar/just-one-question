@@ -8,9 +8,10 @@ var responseModel = require('../models/response');
 var questionForm = require('../forms/question');
 var userModel = require('../models/user');
 
-var app = express();
-app.set('views', './app/views');
-app.use(bodyParser.urlencoded({ extended: false }));
+var router = express.Router();
+module.exports = router;
+
+router.use(bodyParser.urlencoded({ extended: false }));
 
 var bootstrapField = function (name, object) {
   if (!Array.isArray(object.widget.classes)) { object.widget.classes = []; }
@@ -28,11 +29,11 @@ var bootstrapField = function (name, object) {
   return '<div class="form-group ' + validationclass + '">' + widget + error + '</div>';
 };
 
-app.get('/', function(request, response) {
+router.get('/', function(request, response) {
   renderEditForm(questionForm(), response);
 });
 
-app.post('/', function (request, response) {
+router.post('/', function (request, response) {
   if (request.body.action == 'Edit') {
     var form = questionForm().bind(request.body);
     renderEditForm(form, response);
@@ -55,7 +56,7 @@ app.post('/', function (request, response) {
   }
 });
 
-app.post('/response/:id', function (request, response) {
+router.post('/response/:id', function (request, response) {
   response.send();
 
   var pollID = request.params.id,
@@ -92,14 +93,14 @@ app.post('/response/:id', function (request, response) {
   });
 });
 
-app.get('/view', function(request, response) {
+router.get('/view', function(request, response) {
   questionModel.list(function(err, rows) {
     if (err) return errorResponse(response, 'Error listing results', err);
     response.render('results.ejs', {questions: rows});
   });
 });
 
-app.get('/view/:id', function(request, response) {
+router.get('/view/:id', function(request, response) {
   var pollID = request.params.id;
 
   questionModel.get(pollID, function(err, question) {
@@ -111,8 +112,6 @@ app.get('/view/:id', function(request, response) {
     });
   });
 });
-
-module.exports = app;
 
 function getPrefix(id) {
   return '[Q' + id + ']';

@@ -1,11 +1,11 @@
 var express = require('express');
-var app = express();
-app.set('views', './app/views');
 
-app.use('/main', require('./poll'))
+var router = express.Router();
+module.exports = router;
 
-app.get('/', function(request, response) {
+router.use('/auth', require('./auth'));
+router.use('/main', require('./poll'));
+
+router.get('/', function(request, response) {
   response.redirect('/main');
 });
-
-module.exports = app
