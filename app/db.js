@@ -52,14 +52,10 @@ exports.get = function(table, query, callback) {
     query = null;
   }
 
-  knex.select().from(table)
+  knex(table)
     .where(query)
-    .limit(1)
-    .asCallback(function(err, rows) {
-      if (err) return callback(err);
-      if (!rows || !rows.length) return callback(null);
-      callback(null, rows[0]);
-    });
+    .first()
+    .asCallback(callback);
 };
 
 exports.count = function(table, query, callback) {
