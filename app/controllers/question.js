@@ -138,41 +138,43 @@ function sendConfirmation(to, code, callback) {
 }
 
 function checkPreviewForm(request, response, forceShow) {
-  var loggedIn = request.user ? true : false;
   var email = request.body.email || request.user.username;
+  var step = request.body.step;
 
-  if (request.body.regPassword) {
-    createUser(email, request.body.regPassword, function(err, user) {
+  if (step == 'register') {
+    createUser(email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error creating user', err);
       auth.setUser(request, response, user, function(err) {
         if (err) return error.response(response, 'Error logging in', err);
         renderPreviewForm(request, response, 'confirm');
       });
     });
-  } else if (request.body.code) {
+  } else if (step == 'confirm') {
     userModel.confirm(email, request.body.code, function(err, success) {
       if (err) return error.response(response, 'Error confirming user', err);
       if (!success) return renderPreviewForm(request, response, 'confirm');
-      if (!loggedIn) return renderPreviewForm(request, response, 'login');
+      if (!request.user) return renderPreviewForm(request, response, 'login');
       sendQuestion(request, response);
     });
-  } else if (request.body.password) {
+  } else if (step == 'login') {
     auth.checkAndLogin(request, response, email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error logging in', err);
       if (!user) return renderPreviewForm(request, response, 'login');
       sendQuestion(request, response);
     });
-  } else if (!loggedIn || request.user.confirmation_code) {
+  } else {
+    if (request.user) {
+      if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
+      if (forceShow) return renderPreviewForm(request, response);
+      sendQuestion(request, response);
+    }
+
     userModel.get(email, function(err, user) {
       if (err) return error.response(response, 'Error looking up user', err);
       if (!user) return renderPreviewForm(request, response, 'register');
       if (user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
       renderPreviewForm(request, response, 'login');
     });
-  } else if (forceShow) {
-    renderPreviewForm(request, response);
-  } else {
-    sendQuestion(request, response);
   }
 }
 
