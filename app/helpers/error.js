@@ -1,11 +1,11 @@
-function log(msg, err) {
-  if (err) console.log(msg + '\n' + err);
-  else console.log(msg);
-}
-exports.log = log;
+module.exports = {
+  log: function(msg, err) {
+    if (err) console.log(msg + ': ' + err);
+    else console.log(msg);
+  },
 
-function response(response, msg, err) {
-  log(msg, err);
-  return response.render('error.ejs');
-}
-exports.response = response;
+  response: function(response, msg, err) {
+    this.log(msg, err);
+    return response.render('error.ejs');
+  }
+};
