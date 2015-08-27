@@ -41,9 +41,7 @@ router.post('/', function (request, response) {
   if (request.body.action == 'Edit') {
     var form = questionForm({hideEmail: hideEmail}).bind(request.body);
     renderEditForm(form, response);
-  } else if (request.body.preview) {
-    checkPreviewForm(request, response);
-  } else {
+  } else if (request.body.step == 'validate') {
     questionForm({hideEmail: hideEmail}).handle(request, {
       success: function(form) {
         console.log("Success");
@@ -57,6 +55,8 @@ router.post('/', function (request, response) {
         console.log("Empty");
       }
     });
+  } else {
+    checkPreviewForm(request, response);
   }
 });
 
