@@ -167,14 +167,14 @@ function checkPreviewForm(request, response, forceShow) {
       if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
       if (forceShow) return renderPreviewForm(request, response);
       sendQuestion(request, response);
+    } else {
+      userModel.get(email, function(err, user) {
+        if (err) return error.response(response, 'Error looking up user', err);
+        if (!user) return renderPreviewForm(request, response, 'register');
+        if (user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
+        renderPreviewForm(request, response, 'login');
+      });
     }
-
-    userModel.get(email, function(err, user) {
-      if (err) return error.response(response, 'Error looking up user', err);
-      if (!user) return renderPreviewForm(request, response, 'register');
-      if (user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
-      renderPreviewForm(request, response, 'login');
-    });
   }
 }
 
