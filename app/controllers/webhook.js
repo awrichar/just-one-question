@@ -1,7 +1,5 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var contextio = require('contextio');
-var config = require('../config');
 var error = require('../helpers/error');
 var responseModel = require('../models/response');
 var helper = require('../helpers/webhook');
@@ -17,12 +15,7 @@ router.post('/:id', function (request, response) {
   var pollID = request.params.id,
     messageID = request.body.message_data.message_id;
 
-  var client = new contextio.Client({
-    key: config.CONTEXTIO_KEY,
-    secret: config.CONTEXTIO_SECRET
-  });
-
-  helper.getMessage(client, messageID, function(err, msg) {
+  helper.getMessage(messageID, function(err, msg) {
     if (err || !msg.body.length) error.log('Error getting message body', err);
 
     var body = msg.body[0]['content'],

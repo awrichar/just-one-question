@@ -3,6 +3,7 @@ var questionModel = require('../models/question');
 var responseModel = require('../models/response');
 var auth = require('../helpers/auth');
 var error = require('../helpers/error');
+var webhook = require('../helpers/webhook');
 
 var router = express.Router();
 module.exports = router;
@@ -15,6 +16,17 @@ router.get('/', auth.requireLogin, function(request, response) {
 });
 
 router.get('/:id', auth.requireLogin, function(request, response) {
+  if (request.query.refresh == "true") {
+    webhook.forceSync(function(err) {
+      if (err) return error.response(response, 'Error refreshing results', err);
+      renderResult(request, response);
+    });
+  } else {
+    renderResult(request, response);
+  }
+});
+
+function renderResult(request, response) {
   questionModel.get(request.params.id, function(err, question) {
     if (err) return error.response(response, 'Error fetching question', err);
 
@@ -27,4 +39,4 @@ router.get('/:id', auth.requireLogin, function(request, response) {
       response.render('result.ejs', {question: question, responses: responses});
     });
   });
-});
+}

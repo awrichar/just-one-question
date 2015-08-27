@@ -28,3 +28,13 @@ body {
 .main table {
     text-align: left;
 }
+
+.action-bar {
+    position: absolute;
+    top: 30px;
+    right: 15px;
+}
+
+.action-bar .glyphicon {
+    font-size: 20px;
+}
