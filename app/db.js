@@ -50,10 +50,9 @@ exports.fetch = function(table, query, orderBy, callback) {
     orderBy = null;
   }
 
-  knex.select().from(table)
-    .where(query)
-    .orderBy(orderBy || '')
-    .asCallback(callback);
+  var q = knex.select().from(table).where(query);
+  if (orderBy) q = q.orderBy(orderBy);
+  q.asCallback(callback);
 };
 
 exports.get = function(table, query, callback) {
