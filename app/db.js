@@ -1,9 +1,19 @@
-var knex = require('knex')({
-  client: 'sqlite3',
-  connection: {
-    filename: './db.sqlite3'
-  }
-});
+var in_production = (process.env.NODE_ENV == 'production');
+var knex;
+
+if (in_production) {
+  knex = require('knex')({
+    client: 'pg',
+    connection: process.env.DATABASE_URL
+  });
+} else {
+  knex = require('knex')({
+    client: 'sqlite3',
+    connection: {
+      filename: './db.sqlite3'
+    }
+  });
+}
 
 exports.insert = function(table, item, callback) {
   if (!item) return callback('Cannot save a null object');
