@@ -124,7 +124,7 @@ function createUser(username, password, callback) {
     if (err) return callback(err);
     sendConfirmation(username, user.confirmation_code, function(err) {
       if (err) return callback(err);
-      callback(null);
+      callback(null, user);
     });
   });
 }
@@ -142,29 +142,32 @@ function checkPreviewForm(request, response, forceShow) {
   var email = request.body.email || request.user.username;
 
   if (request.body.regPassword) {
-    createUser(email, request.body.regPassword, function(err) {
+    createUser(email, request.body.regPassword, function(err, user) {
       if (err) return error.response(response, 'Error creating user', err);
-      renderPreviewForm(request, response, 'confirm');
+      auth.setUser(request, response, user, function(err) {
+        if (err) return error.response(response, 'Error logging in', err);
+        renderPreviewForm(request, response, 'confirm');
+      });
     });
   } else if (request.body.code) {
     userModel.confirm(email, request.body.code, function(err, success) {
-      if (err) error.response(response, 'Error confirming user', err);
-      else if (!success) renderPreviewForm(request, response, 'confirm');
-      else renderPreviewForm(request, response, 'login');
+      if (err) return error.response(response, 'Error confirming user', err);
+      if (!success) return renderPreviewForm(request, response, 'confirm');
+      if (!loggedIn) return renderPreviewForm(request, response, 'login');
+      sendQuestion(request, response);
     });
   } else if (request.body.password) {
-    auth.checkAndLogin(request, email, request.body.password, function(err, user) {
-      if (err) error.response(response, 'Error logging in', err);
-      else if (!user) renderPreviewForm(request, response, 'login');
-      else sendQuestion(request, response);
+    auth.checkAndLogin(request, response, email, request.body.password, function(err, user) {
+      if (err) return error.response(response, 'Error logging in', err);
+      if (!user) return renderPreviewForm(request, response, 'login');
+      sendQuestion(request, response);
     });
-  } else if (!loggedIn) {
+  } else if (!loggedIn || request.user.confirmation_code) {
     userModel.get(email, function(err, user) {
       if (err) return error.response(response, 'Error looking up user', err);
-
-      if (!user) renderPreviewForm(request, response, 'register');
-      else if (user.confirmation_code) renderPreviewForm(request, response, 'confirm');
-      else renderPreviewForm(request, response, 'login');
+      if (!user) return renderPreviewForm(request, response, 'register');
+      if (user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
+      renderPreviewForm(request, response, 'login');
     });
   } else if (forceShow) {
     renderPreviewForm(request, response);

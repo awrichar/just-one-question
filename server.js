@@ -3,6 +3,7 @@ var http = require('http');
 var express = require('express');
 var session = require('express-session');
 var passport = require('passport');
+var auth = require('./app/helpers/auth');
 var controllers = require('./app/controllers');
 
 var app = express();
@@ -10,10 +11,7 @@ app.use(express.static('./app/public'));
 app.use(session({ secret: 'just-one-question' }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(function(request, response, callback) {
-  response.locals.user = request.user;
-  callback();
-});
+app.use(auth.addUserToResponse);
 app.use(controllers);
 app.set('views', './app/views');
 
