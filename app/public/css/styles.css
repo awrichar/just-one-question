@@ -1,6 +1,10 @@
+body {
+    background: url(/img/bg.jpg);
+}
+
 .main-nav {
     position: relative;
-    background: #666;
+    background: rgba(40,40,40,0.75);
     color: #fff;
     font-size: 20px;
     font-weight: 200;
@@ -14,9 +18,7 @@
 }
 
 .main-nav .account-options {
-    position: absolute;
-    top: 0px;
-    right: 15px;
+    text-align: right;
 }
 
 .main {
