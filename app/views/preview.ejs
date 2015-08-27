@@ -68,12 +68,12 @@
             <% } %>
 
             <div class="form-group col-md-12">
-              <input type="submit" class="btn btn-default btn-lg" name="action" value="Edit"/>
               <% if (step == 'register' || (step == 'confirm' && !user)) { %>
                 <input type="submit" class="btn btn-primary btn-lg" name="action" value="Continue"/>
               <% } else { %>
                 <input type="submit" class="btn btn-primary btn-lg" name="action" value="Send"/>
               <% } %>
+              <input type="submit" class="btn btn-default btn-lg" name="action" value="Edit"/>
             </div>
           </form>
         </div>
