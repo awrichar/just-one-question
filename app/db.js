@@ -18,7 +18,7 @@ if (in_production) {
 exports.insert = function(table, item, callback) {
   if (!item) return callback('Cannot save a null object');
 
-  knex(table).insert(item).asCallback(function(err, ids) {
+  knex(table).insert(item).returning('id').asCallback(function(err, ids) {
     if (err) return callback(err);
     callback(null, ids[0]);
   });
