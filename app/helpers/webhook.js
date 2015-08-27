@@ -42,6 +42,26 @@ exports.createHook = function(request, id, callback) {
   });
 };
 
+exports.getHooks = function(callback) {
+  var client = getClient();
+  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
+    if (err) return callback(err);
+
+    client.accounts(ctxID).webhooks().get(function(err, resp) {
+      if (err) return callback(err);
+      callback(null, resp.body);
+    });
+  });
+};
+
+exports.deleteHook = function(id, callback) {
+  var client = getClient();
+  getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
+    if (err) return callback(err);
+    client.accounts(ctxID).webhooks(id).delete(callback);
+  });
+};
+
 exports.getMessage = function(id, callback) {
   var client = getClient();
   getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
