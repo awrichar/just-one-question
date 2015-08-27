@@ -1,16 +1,9 @@
-var sqlite3 = require('sqlite3');
-var db = new sqlite3.Database('./db.sqlite3');
-
 var knex = require('knex')({
   client: 'sqlite3',
   connection: {
     filename: './db.sqlite3'
   }
 });
-
-exports.parallelize = function(callback) {
-  return db.parallelize(callback);
-};
 
 exports.insert = function(table, item, callback) {
   if (!item) return callback('Cannot save a null object');

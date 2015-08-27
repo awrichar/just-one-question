@@ -2,22 +2,19 @@ var db = require('../db');
 var TABLE = 'response';
 
 exports.createMany = function(question_id, choices, callback) {
-  var errors = 0;
+  var items = [];
+  for (var i=0; i<choices.length; i++) {
+    items.push({
+      question_id: question_id,
+      idx: i + 1,
+      label: choices[i],
+    });
+  }
 
-  db.parallelize(function() {
-    for (var i=0; i<choices.length; i++) {
-      db.insert(TABLE, {
-        question_id: question_id,
-        idx: i + 1,
-        label: choices[i],
-      }, function(err) {
-        if (err) errors++;
-      });
-    }
-  });
-
-  if (errors == 0) callback(null);
-  else callback(errors);
+  db.insert(TABLE, items, function(err) {
+    if (err) return callback(err);
+    callback(null);
+  })
 };
 
 exports.getCount = function(question_id, callback) {
