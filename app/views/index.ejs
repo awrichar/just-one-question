@@ -22,5 +22,12 @@
 
     </div>
     <% include partials/body_end %>
+    <script src="/js/jquery.placeholder.min.js"></script>
+    <script type="text/javascript">
+      $('textarea[placeholder]').placeholder();
+      $(window).unload(function(){
+        $('textarea.placeholder').val('');
+      });
+    </script>
   </body>
 </html>

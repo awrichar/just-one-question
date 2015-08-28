@@ -70,3 +70,7 @@ h1 {
 .action-bar .glyphicon {
     font-size: 20px;
 }
+
+::-webkit-input-placeholder { color: #999; }
+:-moz-placeholder { color: #999; }
+.placeholder { color: #999; }
