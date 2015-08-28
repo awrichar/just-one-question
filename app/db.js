@@ -15,60 +15,64 @@ if (in_production) {
   });
 }
 
-exports.insert = function(table, item, callback) {
-  if (!item) return callback('Cannot save a null object');
+module.exports = {
+  knex: knex,
 
-  knex(table).insert(item).returning('id').asCallback(function(err, ids) {
-    if (err) return callback(err);
-    callback(null, ids[0]);
-  });
-};
+  insert: function(table, item, callback) {
+    if (!item) return callback('Cannot save a null object');
 
-exports.update = function(table, item, query, callback) {
-  knex(table)
-    .where(query)
-    .update(item)
-    .asCallback(callback);
-};
+    knex(table).insert(item).returning('id').asCallback(function(err, ids) {
+      if (err) return callback(err);
+      callback(null, ids[0]);
+    });
+  },
 
-exports.increment = function(table, field, query, callback) {
-  knex(table)
-    .where(query)
-    .increment(field, 1)
-    .asCallback(callback);
-};
+  update: function(table, item, query, callback) {
+    knex(table)
+      .where(query)
+      .update(item)
+      .asCallback(callback);
+  },
 
-exports.fetch = function(table, query, orderBy, callback) {
-  if (typeof query === 'function') {
-    callback = orderBy;
-    orderBy = query;
-    query = null;
-  }
+  increment: function(table, field, query, callback) {
+    knex(table)
+      .where(query)
+      .increment(field, 1)
+      .asCallback(callback);
+  },
 
-  if (typeof orderBy === 'function') {
-    callback = orderBy;
-    orderBy = null;
-  }
+  fetch: function(table, query, orderBy, callback) {
+    if (typeof query === 'function') {
+      callback = orderBy;
+      orderBy = query;
+      query = null;
+    }
 
-  var q = knex.select().from(table).where(query);
-  if (orderBy) q = q.orderBy(orderBy);
-  q.asCallback(callback);
-};
+    if (typeof orderBy === 'function') {
+      callback = orderBy;
+      orderBy = null;
+    }
 
-exports.get = function(table, query, callback) {
-  if (typeof query === 'function') {
-    callback = query;
-    query = null;
-  }
+    var q = knex.select().from(table).where(query);
+    if (orderBy) q = q.orderBy(orderBy);
+    q.asCallback(callback);
+  },
 
-  knex(table)
-    .where(query)
-    .first()
-    .asCallback(callback);
-};
+  get: function(table, query, callback) {
+    if (typeof query === 'function') {
+      callback = query;
+      query = null;
+    }
 
-exports.count = function(table, query, callback) {
-  knex(table)
-    .count('*')
-    .asCallback(callback);
+    knex(table)
+      .where(query)
+      .first()
+      .asCallback(callback);
+  },
+
+  count: function(table, query, callback) {
+    knex(table)
+      .count('*')
+      .asCallback(callback);
+  },
 };

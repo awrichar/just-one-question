@@ -1,15 +1,32 @@
 #!/usr/bin/env node
-var sqlite3 = require('sqlite3');
-var db = new sqlite3.Database('./db.sqlite3');
+var db = require('./app/db');
+var knex = db.knex;
 
-db.run('CREATE TABLE user (id INTEGER PRIMARY KEY, username TEXT, password TEXT, confirmation_code TEXT) UNIQUE (username)', function(err) {
-  if (err) console.log("Error creating user table: " + err);
-});
+knex.schema.createTable('user', function (table) {
+  table.increments();
+  table.string('username').unique();
+  table.string('password');
+  table.string('confirmation_code', 20);
+}).asCallback(function(err) {
+  if (err) console.log(err);
 
-db.run('CREATE TABLE question (id INTEGER PRIMARY KEY, user_id INTEGER, recipients TEXT, question TEXT)', function(err) {
-  if (err) console.log("Error creating question table: " + err);
-});
+  knex.schema.createTable('question', function (table) {
+    table.increments();
+    table.integer('user_id');
+    table.string('recipients');
+    table.text('question');
+  }).asCallback(function(err) {
+    if (err) console.log(err);
 
-db.run('CREATE TABLE response (question_id INTEGER, idx INTEGER, label TEXT, count INTEGER DEFAULT 0)', function(err) {
-  if (err) console.log("Error creating response table: " + err);
+    knex.schema.createTable('response', function (table) {
+      table.increments();
+      table.integer('question_id');
+      table.integer('idx');
+      table.string('label');
+      table.integer('count').defaultTo(0);
+    }).asCallback(function(err) {
+      if (err) console.log(err);
+      knex.destroy();
+    });
+  });
 });
