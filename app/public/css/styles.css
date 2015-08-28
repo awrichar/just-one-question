@@ -14,11 +14,19 @@ body {
 
 .main-nav a {
     color: #fff;
-    margin: 0 10px;
+    margin: 0 5px;
 }
 
 .main-nav .account-options {
     text-align: right;
+}
+
+.main-nav .username-wrapper {
+    text-align: right;
+}
+
+.main-nav .username {
+    margin: 0 5px;
 }
 
 .main {

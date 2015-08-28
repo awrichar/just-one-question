@@ -6,80 +6,76 @@
   </head>
 
   <body>
-    <% include partials/nav %>
+    <% include partials/body_start %>
+    <div class="col-md-12">
 
-    <div class="container main">
-      <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-          <h1>Preview</h1>
+      <h1>Preview</h1>
 
-          <table class="table">
-            <tr>
-              <th>From</th>
-              <td><%= email %></td>
-            </tr>
-            <tr>
-              <th>To</th>
-              <td><%= recipients %></td>
-            </tr>
-            <tr>
-              <th>Question</th>
-              <td><%= question %></td>
-            </tr>
-            <tr>
-              <th>Choices</th>
-              <td>
-                <% for(var i=0; i<choicesNumbered.length; i++) { %>
-                  <%= choicesNumbered[i] %><br />
-                <% } %>
-              </td>
-            </tr>
-          </table>
-
-          <form method="post">
-            <input type="hidden" name="step" value="<%= step %>" />
-
-            <input type="hidden" name="email" value="<%= email %>" />
-            <input type="hidden" name="recipients" value="<%= recipients %>" />
-            <input type="hidden" name="question" value="<%= question %>" />
-            <input type="hidden" name="choices" value="<%= choices %>" />
-
-            <% if (step == 'register') { %>
-              <span class="help-block">
-                Your question is ready to send! You'll need to create a password so you can view the results.
-              </span>
-              <div class="form-group col-md-6 col-md-offset-3">
-                <input type="password" name="password" class="form-control input-lg" placeholder="Password" />
-              </div>
-            <% } else if (step == 'confirm') { %>
-              <span class="help-block">
-                One last step! You should have received an email with a confirmation code. Please enter it below.
-              </span>
-              <div class="form-group col-md-6 col-md-offset-3">
-                <input type="text" name="code" class="form-control input-lg" placeholder="Confirmation code" />
-              </div>
-            <% } else if (step == 'login') { %>
-              <span class="help-block">
-                Please enter your password to login.
-              </span>
-              <div class="form-group col-md-6 col-md-offset-3">
-                <input type="password" name="password" class="form-control input-lg" placeholder="Password" />
-              </div>
+      <table class="table">
+        <tr>
+          <th>From</th>
+          <td><%= email %></td>
+        </tr>
+        <tr>
+          <th>To</th>
+          <td><%= recipients %></td>
+        </tr>
+        <tr>
+          <th>Question</th>
+          <td><%= question %></td>
+        </tr>
+        <tr>
+          <th>Choices</th>
+          <td>
+            <% for(var i=0; i<choicesNumbered.length; i++) { %>
+              <%= choicesNumbered[i] %><br />
             <% } %>
+          </td>
+        </tr>
+      </table>
 
-            <div class="form-group col-md-12">
-              <% if (step == 'register' || (step == 'confirm' && !user)) { %>
-                <input type="submit" class="btn btn-primary btn-lg" name="action" value="Continue"/>
-              <% } else { %>
-                <input type="submit" class="btn btn-primary btn-lg" name="action" value="Send"/>
-              <% } %>
-              <input type="submit" class="btn btn-default btn-lg" name="action" value="Edit"/>
-            </div>
-          </form>
+      <form method="post">
+        <input type="hidden" name="step" value="<%= step %>" />
+
+        <input type="hidden" name="email" value="<%= email %>" />
+        <input type="hidden" name="recipients" value="<%= recipients %>" />
+        <input type="hidden" name="question" value="<%= question %>" />
+        <input type="hidden" name="choices" value="<%= choices %>" />
+
+        <% if (step == 'register') { %>
+          <span class="help-block">
+            Your question is ready to send! You'll need to create a password so you can view the results.
+          </span>
+          <div class="form-group col-md-6 col-md-offset-3">
+            <input type="password" name="password" class="form-control input-lg" placeholder="Password" />
+          </div>
+        <% } else if (step == 'confirm') { %>
+          <span class="help-block">
+            One last step! You should have received an email with a confirmation code. Please enter it below.
+          </span>
+          <div class="form-group col-md-6 col-md-offset-3">
+            <input type="text" name="code" class="form-control input-lg" placeholder="Confirmation code" />
+          </div>
+        <% } else if (step == 'login') { %>
+          <span class="help-block">
+            Please enter your password to login.
+          </span>
+          <div class="form-group col-md-6 col-md-offset-3">
+            <input type="password" name="password" class="form-control input-lg" placeholder="Password" />
+          </div>
+        <% } %>
+
+        <div class="form-group col-md-12">
+          <% if (step == 'register' || (step == 'confirm' && !user)) { %>
+            <input type="submit" class="btn btn-primary btn-lg" name="action" value="Continue"/>
+          <% } else { %>
+            <input type="submit" class="btn btn-primary btn-lg" name="action" value="Send"/>
+          <% } %>
+          <input type="submit" class="btn btn-default btn-lg" name="action" value="Edit"/>
         </div>
-      </div>
-    </div>
+      </form>
 
-    <% include partials/foot %>
+    </div>
+    <% include partials/body_end %>
   </body>
 </html>

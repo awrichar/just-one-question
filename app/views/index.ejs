@@ -6,25 +6,21 @@
   </head>
 
   <body>
-    <% include partials/nav %>
+    <% include partials/body_start %>
+    <div class="col-md-12">
 
-    <div class="container main">
-      <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-          <h1>Just One Question</h1>
-          <span class="help-block">
-            Enter a question and a set of possible responses.
-          </span>
+      <h1>Just One Question</h1>
+      <span class="help-block">
+        Enter a question and a set of possible responses.
+      </span>
 
-          <form method="post" action="/main">
-            <%- form %>
-            <input type="hidden" name="step" value="validate"/>
-            <button type="submit" class="btn btn-primary btn-lg">Preview</button>
-          </form>
-        </div>
-      </div>
+      <form method="post" action="/main">
+        <%- form %>
+        <input type="hidden" name="step" value="validate"/>
+        <button type="submit" class="btn btn-primary btn-lg">Preview</button>
+      </form>
+
     </div>
-
-    <% include partials/foot %>
+    <% include partials/body_end %>
   </body>
 </html>

@@ -6,40 +6,37 @@
   </head>
 
   <body>
-    <% include partials/nav %>
+    <% include partials/body_start %>
+    <div class="col-md-12">
 
-    <div class="container main">
-      <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-          <div class="action-bar">
-            <a href="?refresh=true" title="Refresh"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
-          </div>
-          <h1><%= question.question %></h1>
-
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Response</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <% responses.forEach(function(response) {%>
-              <tr>
-                <td><%= response.label %></td>
-                <td><%= response.count %></td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-
-          <canvas id="myChart" width="400" height="400"></canvas>
-        </div>
+      <div class="action-bar">
+        <a href="?refresh=true" title="Refresh"><span aria-hidden="true" class="glyphicon glyphicon-refresh"></span></a>
       </div>
-    </div>
+      <h1><%= question.question %></h1>
 
-    <% include partials/foot %>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Response</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% responses.forEach(function(response) {%>
+          <tr>
+            <td><%= response.label %></td>
+            <td><%= response.count %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <canvas id="myChart" width="400" height="400"></canvas>
+
+    </div>
+    <% include partials/body_end %>
+    <script src="/js/Chart.min.js"></script>
     <script type="text/javascript">
       $(function(){
         var colors = [
