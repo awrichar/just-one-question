@@ -14,7 +14,7 @@ h1 {
 
 .main-nav {
     position: relative;
-    background: rgba(40,40,40,0.7);
+    background: rgba(41,174,154,0.7);
     color: #fff;
     font-size: 20px;
     padding: 5px 0px;
@@ -36,6 +36,21 @@ h1 {
 
 .main-nav .username {
     margin: 0 5px;
+}
+
+.btn-primary {
+    background: rgb(41,174,154);
+    border-color: rgb(41,174,154);
+}
+
+.btn-primary:hover {
+    background: rgb(20,150,130);
+    border-color: rgb(20,150,130);
+}
+
+.btn-primary:active, .btn-primary:hover:active {
+    background: rgb(0,130,110);
+    border-color: rgb(0,130,110);
 }
 
 .main {
