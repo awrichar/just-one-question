@@ -44,15 +44,13 @@ router.post('/', function (request, response) {
   } else if (request.body.step == 'validate') {
     questionForm({hideEmail: hideEmail}).handle(request, {
       success: function(form) {
-        console.log("Success");
         checkPreviewForm(request, response, true);
       },
       error: function(form) {
-        console.log("Error");
         renderEditForm(form, response);
       },
       empty: function(form) {
-        console.log("Empty");
+        renderEditForm(form, response);
       }
     });
   } else {
