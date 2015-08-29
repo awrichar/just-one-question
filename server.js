@@ -5,10 +5,21 @@ var session = require('express-session');
 var passport = require('passport');
 var auth = require('./app/helpers/auth');
 var controllers = require('./app/controllers');
+var config = require('./app/config');
+var db = require('./app/db');
+
+var KnexSessionStore = require('connect-session-knex')(session);
 
 var app = express();
 app.use(express.static('./app/public'));
-app.use(session({ secret: 'just-one-question' }));
+app.use(session({
+  secret: config.SESSION_KEY,
+  store: new KnexSessionStore({
+    knex: db.knex,
+  }),
+  resave: true,
+  saveUninitialized: false,
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(auth.addUserToResponse);
