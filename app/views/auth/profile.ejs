@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question - Edit Profile</title>
+    <% include ../partials/head %>
+  </head>
+
+  <body>
+    <% include ../partials/body_start %>
+    <div class="col-md-12">
+
+      <h1>Edit Profile</h1>
+      <form method="post">
+        <div class="form-group col-md-6 col-md-offset-3">
+          <input type="password" name="password" class="form-control input-lg" placeholder="Old password"/>
+        </div>
+
+        <div class="form-group col-md-6 col-md-offset-3">
+          <input type="password" name="newPassword" class="form-control input-lg" placeholder="New password"/>
+        </div>
+
+        <div class="form-group col-md-12">
+          <button type="submit" class="btn btn-primary btn-lg">Change Password</button>
+        </div>
+      </form>
+
+    </div>
+    <% include ../partials/body_end %>
+  </body>
+</html>

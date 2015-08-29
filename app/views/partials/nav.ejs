@@ -13,7 +13,10 @@
 
           <div class="col-sm-7 col-xs-4 account-options">
             <% if (user) { %>
-              <span class="hidden-xs username"><%= user.username %></span>
+              <span class="hidden-xs username">
+                <a href="/auth/profile"><%= user.username %></a>
+              </span>
+
               <a href="/auth/logout">Logout</a>
             <% } else { %>
               <a href="/auth/login">Login</a>
@@ -22,7 +25,9 @@
 
           <% if (user) { %>
             <div class="visible-xs-block col-xs-12 username-wrapper">
-              <span class="username"><%= user.username %></span>
+              <span class="username">
+                <a href="/auth/profile"><%= user.username %></a>
+              </span>
             </div>
           <% } %>
 

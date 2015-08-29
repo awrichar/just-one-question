@@ -35,6 +35,26 @@ router.get('/logout', function(request, response) {
   response.redirect('/');
 });
 
+router.get('/profile', helper.requireLogin, function(request, response) {
+  response.render('auth/profile.ejs');
+});
+
+router.post('/profile', helper.requireLogin, function(request, response) {
+  var username = request.user.username;
+  var password = request.body.password;
+  var newPassword = request.body.newPassword;
+
+  helper.checkPassword(username, password, function(err, user) {
+    if (err) return error.response(response, 'Error checking password', err);
+    if (!user) return error.response(response, 'Wrong password');
+
+    userModel.changePassword(username, newPassword, function(err) {
+      if (err) return error.response(response, 'Error changing password', err);
+      response.redirect('/');
+    });
+  });
+});
+
 router.get('/forgot', function(request, response) {
   response.render('auth/forgot.ejs');
 });
