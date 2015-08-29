@@ -13,7 +13,7 @@ module.exports = router;
 router.use(bodyParser.urlencoded({ extended: false }));
 
 router.get('/login', function(request, response) {
-  response.render('login.ejs');
+  response.render('auth/login.ejs');
 });
 
 router.post('/login', function(request, response, callback) {
@@ -36,7 +36,7 @@ router.get('/logout', function(request, response) {
 });
 
 router.get('/forgot', function(request, response) {
-  response.render('forgot.ejs');
+  response.render('auth/forgot.ejs');
 });
 
 router.post('/forgot', function(request, response) {
@@ -46,7 +46,7 @@ router.post('/forgot', function(request, response) {
     var body = 'Your new password is ' + password + '.';
     email.send('from', username, [], 'Password change requested', body, function(err) {
       if (err) return error.response(response, 'Error sending password email', err);
-      response.render('forgot_success.ejs', {email: username});
+      response.render('auth/forgot_success.ejs', {email: username});
     });
   });
 });
