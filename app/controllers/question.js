@@ -132,7 +132,7 @@ function sendConfirmation(to, code, callback) {
   email.send({
       to: to,
       subject: 'Confirm your account',
-      body: body,
+      text: body,
     }, function(err) {
       if (err) return callback(err);
       callback(null);
@@ -197,7 +197,7 @@ function sendQuestion(request, response) {
         fromName: params.email,
         bcc: params.recipients,
         subject: subject,
-        body: body,
+        text: body,
       }, function(err) {
         if (err) return error.response(response, 'Error sending email', err);
 

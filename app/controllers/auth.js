@@ -68,7 +68,7 @@ router.post('/forgot', function(request, response) {
     email.send({
         to: username,
         subject: 'Password change requested',
-        body: body,
+        text: body,
       }, function(err) {
         if (err) return error.response(response, 'Error sending password email', err);
         response.render('auth/forgot_success.ejs', {email: username});
