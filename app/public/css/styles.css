@@ -43,12 +43,12 @@ h1 {
     border-color: rgb(41,174,154);
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:focus {
     background: rgb(20,150,130);
     border-color: rgb(20,150,130);
 }
 
-.btn-primary:active, .btn-primary:hover:active {
+.btn-primary:active, .btn-primary:hover:active, .btn-primary:focus:active {
     background: rgb(0,130,110);
     border-color: rgb(0,130,110);
 }
