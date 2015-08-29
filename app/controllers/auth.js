@@ -64,10 +64,16 @@ router.post('/forgot', function(request, response) {
   userModel.changePassword(username, function(err, password) {
     if (err || !password) return error.response(response, 'Error changing password', err);
     var body = 'Your new password is ' + password + '.';
-    email.send('from', username, [], 'Password change requested', body, function(err) {
-      if (err) return error.response(response, 'Error sending password email', err);
-      response.render('auth/forgot_success.ejs', {email: username});
-    });
+
+    email.send({
+        to: username,
+        subject: 'Password change requested',
+        body: body,
+      }, function(err) {
+        if (err) return error.response(response, 'Error sending password email', err);
+        response.render('auth/forgot_success.ejs', {email: username});
+      }
+    );
   });
 });
 

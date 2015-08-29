@@ -1,7 +1,15 @@
 var nodemailer = require('nodemailer');
 var config = require('../config');
 
-exports.send = function(fromName, to, bcc, subject, body, callback) {
+var DEFAULT_FROM = 'Just One Question';
+
+exports.send = function(options, callback) {
+  var fromName = options.fromName || DEFAULT_FROM;
+  var to = options.to || [];
+  var bcc = options.bcc || [];
+  var subject = options.subject || '';
+  var body = options.body || '';
+
   var transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {

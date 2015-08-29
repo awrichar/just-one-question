@@ -129,10 +129,15 @@ function createUser(username, password, callback) {
 
 function sendConfirmation(to, code, callback) {
   var body = 'Thanks for signing up with Just One Question. Please confirm your account using the code ' + code + '.';
-  email.send('Just One Question', [to], [], 'Confirm your account', body, function(err) {
-    if (err) return callback(err);
-    callback(null);
-  });
+  email.send({
+      to: to,
+      subject: 'Confirm your account',
+      body: body,
+    }, function(err) {
+      if (err) return callback(err);
+      callback(null);
+    }
+  );
 }
 
 function checkPreviewForm(request, response, forceShow) {
@@ -188,13 +193,19 @@ function sendQuestion(request, response) {
         params.choicesNumbered.join('\n') +
         '\n\nPlease respond to this email with a single number indicating your choice.';
 
-    email.send(params.email, [], params.recipients, subject, body, function(err) {
-      if (err) return error.response(response, 'Error sending email', err);
+    email.send({
+        fromName: params.email,
+        bcc: params.recipients,
+        subject: subject,
+        body: body,
+      }, function(err) {
+        if (err) return error.response(response, 'Error sending email', err);
 
-      webhook.createHook(request, id, function(err) {
-        if (err) return error.response(response, 'Error creating email hook', err);
-        response.render('success.ejs');
-      });
-    });
+        webhook.createHook(request, id, function(err) {
+          if (err) return error.response(response, 'Error creating email hook', err);
+          response.render('success.ejs');
+        });
+      }
+    );
   });
 }
