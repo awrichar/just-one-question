@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question - Password Reset Successful</title>
+    <% include partials/head %>
+  </head>
+
+  <body>
+    <% include partials/body_start %>
+    <div class="col-md-12">
+
+      <h1>Password Reset Successful</h1>
+      <span class="help-block">
+        Your password has been reset. An email has been sent to
+        <a href="mailto:<%= email %>"><%= email %></a> with the details.
+      </span>
+
+    </div>
+    <% include partials/body_end %>
+  </body>
+</html>

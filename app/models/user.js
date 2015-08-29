@@ -26,8 +26,24 @@ exports.confirm = function(username, code, callback) {
     if (code != row.confirmation_code) return callback(null, false);
 
     db.update(TABLE, {confirmation_code: null}, {username: username}, function(err, changes) {
-      if(err) return callback(err);
+      if (err) return callback(err);
       callback(null, changes > 0);
     });
   });
-}
+};
+
+exports.changePassword = function(username, newPassword, callback) {
+  if (typeof newPassword === 'function') {
+    callback = newPassword;
+    newPassword = shortid.generate();
+  }
+
+  if (!username) {
+    return callback('No username given');
+  }
+
+  db.update(TABLE, {password: hash.generate(newPassword)}, {username: username}, function(err, changes) {
+    if (err) return callback(err);
+    callback(null, changes > 0 ? newPassword : null);
+  });
+};
