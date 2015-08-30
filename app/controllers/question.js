@@ -193,16 +193,20 @@ function sendQuestion(request, response) {
     if (err) return error.response(response, 'Error inserting into database', err);
 
     var prefix = webhook.getPrefix(id),
-      subject = prefix + ' ' + params.question,
-      body = 'You\'ve been asked a question by ' + params.email + ':\n' + params.question + '\n\n' +
-        params.choicesNumbered.join('\n') +
-        '\n\nPlease respond to this email with a single number indicating your choice.';
+      subject = prefix + ' ' + params.question;
 
     email.send({
         fromName: params.email,
         bcc: params.recipients,
         subject: subject,
-        text: body,
+        htmlTemplate: 'app/views/emails/question.ejs',
+        textTemplate: 'app/views/emails/question.txt',
+        templateOptions: {
+          email: params.email,
+          question: params.question,
+          choices: params.choicesSplit,
+          rootUri: uriHelper.getRootUri(request),
+        },
       }, function(err) {
         if (err) return error.response(response, 'Error sending email', err);
 

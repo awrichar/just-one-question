@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Just One Question</title>
+  </head>
+
+  <body>
+    <h1 style="font-weight: 100; color: #999;">Just One Question</h1>
+
+    <p>You've been asked a question by <%= email %>:</p>
+
+    <div style="border: 1px solid #ddd; border-radius: 5px; padding: 0 5px;">
+      <p style="color: #999; font-style: italic; padding-left: 10px;">
+        <%= question %>
+      </p>
+
+      <ol style="margin-left: 0; padding-left: 20px;">
+        <% for (var i=0; i<choices.length; i++) { %>
+          <li><%= choices[i] %></li>
+        <% } %>
+      </ol>
+    </div>
+
+    <p>Please reply to this email with a number (1-<%= choices.length %>)
+    indicating your choice.</p>
+
+    <p style="color: #999;">
+      This message was sent from <%= rootUri %>.
+    </p>
+  </body>
+</html>

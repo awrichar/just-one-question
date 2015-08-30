@@ -1,0 +1,8 @@
+You've been asked a question by <%= email %>:
+<%= question %>
+<% for (var i=0; i<choices.length; i++) { %>
+ <%= i+1 %>) <%= choices[i] %><% } %>
+
+Please reply to this email with a number (1-<%= choices.length %>) indicating your choice.
+
+This message was sent from <%= rootUri %>.
