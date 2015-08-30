@@ -1,0 +1,9 @@
+Confirm Your Account
+
+Thanks for signing up with Just One Question. Before sending a question, you
+will be required to confirm your email address using the code below. Please
+enter it on the website when prompted.
+
+Your confirmation code is: <%= code %>
+
+This message was sent from <%= rootUri %>.

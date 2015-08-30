@@ -8,6 +8,7 @@ var userModel = require('../models/user');
 var error = require('../helpers/error');
 var auth = require('../helpers/auth');
 var webhook = require('../helpers/webhook');
+var uriHelper = require('../helpers/uri');
 
 var router = express.Router();
 module.exports = router;
@@ -117,22 +118,26 @@ function renderPreviewForm(request, response, step) {
   response.render('preview.ejs', params);
 }
 
-function createUser(username, password, callback) {
+function createUser(request, username, password, callback) {
   userModel.create(username, password, function(err, user) {
     if (err) return callback(err);
-    sendConfirmation(username, user.confirmation_code, function(err) {
+    sendConfirmation(request, username, user.confirmation_code, function(err) {
       if (err) return callback(err);
       callback(null, user);
     });
   });
 }
 
-function sendConfirmation(to, code, callback) {
-  var body = 'Thanks for signing up with Just One Question. Please confirm your account using the code ' + code + '.';
+function sendConfirmation(request, to, code, callback) {
   email.send({
       to: to,
       subject: 'Confirm your account',
-      text: body,
+      htmlTemplate: 'app/views/emails/confirm.ejs',
+      textTemplate: 'app/views/emails/confirm.txt',
+      templateOptions: {
+        code: code,
+        rootUri: uriHelper.getRootUri(request),
+      },
     }, function(err) {
       if (err) return callback(err);
       callback(null);
@@ -145,7 +150,7 @@ function checkPreviewForm(request, response, forceShow) {
   var step = request.body.step;
 
   if (step == 'register') {
-    createUser(email, request.body.password, function(err, user) {
+    createUser(request, email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error creating user', err);
       auth.setUser(request, response, user, function(err) {
         if (err) return error.response(response, 'Error logging in', err);

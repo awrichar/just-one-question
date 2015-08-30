@@ -14,6 +14,10 @@ db.run('DELETE FROM response', function(err) {
   if (err) console.log("Error truncating user table: " + err);
 });
 
+db.run('DELETE FROM sessions', function(err) {
+  if (err) console.log("Error truncating sessions table: " + err);
+});
+
 var webhook = require('./app/helpers/webhook');
 webhook.getHooks(function(err, hooks) {
   if (err) console.log("Error deleting web hooks: " + err);
