@@ -1,5 +1,6 @@
 var contextio = require('contextio');
 var config = require('../config');
+var uriHelper = require('./uri');
 
 function getClient() {
   return new contextio.Client({
@@ -27,7 +28,7 @@ module.exports = {
     getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
       if (err) return callback(err);
 
-      var urlPrefix = request.protocol + '://' + request.get('host') + '/main',
+      var urlPrefix = uriHelper.getRootUri(request) + '/main',
         hookOptions = {
           filter_to: config.EMAIL_USER,
           filter_subject: prefix,

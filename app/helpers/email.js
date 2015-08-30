@@ -7,38 +7,46 @@ var DEFAULT_FROM = 'Just One Question';
 exports.send = function(options, callback) {
   var fromName = options.fromName || DEFAULT_FROM;
   var to = options.to || [];
+  var cc = options.cc || [];
   var bcc = options.bcc || [];
   var subject = options.subject || '';
   var text = options.text || '';
-  var template = options.template || null;
+  var htmlTemplate = options.htmlTemplate || null;
+  var textTemplate = options.textTemplate || null;
   var templateOptions = options.templateOptions || {};
 
-  renderBody(template, templateOptions, function(err, html) {
+  renderBody(htmlTemplate, templateOptions, function(err, html) {
     if (err) return callback(err);
 
-    var transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: config.EMAIL_USER,
-        pass: config.EMAIL_PASSWORD,
-      }
-    });
-
-    var mailOptions = {
-      from: fromName + '<' + config.EMAIL_USER + '>',
-      replyTo: config.EMAIL_USER,
-      to: to,
-      bcc: bcc,
-      subject: subject,
-      text: text,
-      html: html
-    };
-
-    transporter.sendMail(mailOptions, function(err, info) {
+    renderBody(textTemplate, templateOptions, function(err, newText) {
       if (err) return callback(err);
-      callback(null);
+      if (newText) text = newText;
+
+      var transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: config.EMAIL_USER,
+          pass: config.EMAIL_PASSWORD,
+        }
+      });
+
+      var mailOptions = {
+        from: fromName + '<' + config.EMAIL_USER + '>',
+        replyTo: config.EMAIL_USER,
+        to: to,
+        cc: cc,
+        bcc: bcc,
+        subject: subject,
+        text: text,
+        html: html
+      };
+
+      transporter.sendMail(mailOptions, function(err, info) {
+        if (err) return callback(err);
+        callback(null);
+      });
     });
-  })
+  });
 };
 
 function renderBody(template, templateOptions, callback) {

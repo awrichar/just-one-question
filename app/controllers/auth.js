@@ -6,6 +6,7 @@ var userModel = require('../models/user');
 var helper = require('../helpers/auth');
 var error = require('../helpers/error');
 var email = require('../helpers/email');
+var uriHelper = require('../helpers/uri');
 
 var router = express.Router();
 module.exports = router;
@@ -63,12 +64,16 @@ router.post('/forgot', function(request, response) {
   var username = request.body.username;
   userModel.changePassword(username, function(err, password) {
     if (err || !password) return error.response(response, 'Error changing password', err);
-    var body = 'Your new password is ' + password + '.';
 
     email.send({
         to: username,
         subject: 'Password change requested',
-        text: body,
+        htmlTemplate: 'app/views/emails/password_change.ejs',
+        textTemplate: 'app/views/emails/password_change.txt',
+        templateOptions: {
+          password: password,
+          rootUri: uriHelper.getRootUri(request),
+        },
       }, function(err) {
         if (err) return error.response(response, 'Error sending password email', err);
         response.render('auth/forgot_success.ejs', {email: username});
