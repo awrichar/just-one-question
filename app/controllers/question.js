@@ -9,6 +9,7 @@ var error = require('../helpers/error');
 var auth = require('../helpers/auth');
 var webhook = require('../helpers/webhook');
 var uriHelper = require('../helpers/uri');
+var helper = require('../helpers/question');
 
 var router = express.Router();
 module.exports = router;
@@ -59,43 +60,6 @@ router.post('/', function (request, response) {
   }
 });
 
-function splitChoices(choices) {
-  var output = [];
-  choices = choices.split('\n');
-
-  for (var i=0; i<choices.length; i++) {
-    output.push(choices[i].trim());
-  }
-
-  return output;
-}
-
-function numberChoices(choices) {
-  var output = [];
-
-  for (var i=0; i<choices.length; i++) {
-    output.push((i+1) + ') ' + choices[i]);
-  }
-
-  return output;
-}
-
-function getQuestionParams(request) {
-  var body = request.body,
-    choices = body.choices,
-    choicesSplit = splitChoices(choices),
-    choicesNumbered = numberChoices(choicesSplit);
-
-  return {
-    email: body.email || request.user.username,
-    recipients: body.recipients,
-    question: body.question,
-    choices: choices,
-    choicesSplit: choicesSplit,
-    choicesNumbered: choicesNumbered
-  };
-}
-
 function createQuestion(user_id, recipients, q, choices, callback) {
   questionModel.create(user_id, recipients, q, function(err, id) {
       if (err) return callback(err);
@@ -113,7 +77,7 @@ function renderEditForm(form, response) {
 }
 
 function renderPreviewForm(request, response, step) {
-  var params = getQuestionParams(request);
+  var params = helper.getQuestionParams(request);
   params['step'] = step;
   response.render('preview.ejs', params);
 }
@@ -187,7 +151,7 @@ function checkPreviewForm(request, response, forceShow) {
 }
 
 function sendQuestion(request, response) {
-  var params = getQuestionParams(request);
+  var params = helper.getQuestionParams(request);
 
   createQuestion(request.user.id, params.recipients, params.question, params.choicesSplit, function(err, id) {
     if (err) return error.response(response, 'Error inserting into database', err);
