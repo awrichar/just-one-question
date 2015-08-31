@@ -3,7 +3,7 @@ var http = require('http');
 var express = require('express');
 var session = require('express-session');
 var passport = require('passport');
-var auth = require('./app/helpers/auth');
+var addUser = require('./app/middleware/addUser');
 var controllers = require('./app/controllers');
 var config = require('./app/config');
 var db = require('./app/db');
@@ -24,7 +24,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(auth.addUserToResponse);
+app.use(addUser);
 app.use(controllers);
 app.set('views', './app/views');
 

@@ -1,21 +1,21 @@
 var express = require('express');
 var questionModel = require('../models/question');
 var responseModel = require('../models/response');
-var auth = require('../helpers/auth');
+var requireLogin = require('../middleware/requireLogin');
 var error = require('../helpers/error');
 var webhook = require('../helpers/webhook');
 
 var router = express.Router();
 module.exports = router;
 
-router.get('/', auth.requireLogin, function(request, response) {
+router.get('/', requireLogin, function(request, response) {
   questionModel.list(request.user.id, function(err, rows) {
     if (err) return error.response(response, 'Error listing results', err);
     response.render('results.ejs', {questions: rows});
   });
 });
 
-router.get('/:id', auth.requireLogin, function(request, response) {
+router.get('/:id', requireLogin, function(request, response) {
   if (request.query.refresh == "true") {
     webhook.forceSync(function(err) {
       if (err) return error.response(response, 'Error refreshing results', err);

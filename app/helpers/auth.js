@@ -3,13 +3,7 @@ var hash = require('password-hash');
 var userModel = require('../models/user');
 
 module.exports = {
-  addUserToResponse: function(request, response, callback) {
-    response.locals.user = request.user;
-    callback();
-  },
-
-  requireLogin: function(request, response, callback) {
-    if (request.isAuthenticated()) return callback();
+  redirectToLogin: function(request, response) {
     var query = querystring.stringify({next: request.originalUrl});
     response.redirect('/auth/login?' + query);
   },

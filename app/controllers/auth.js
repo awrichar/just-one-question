@@ -7,6 +7,7 @@ var helper = require('../helpers/auth');
 var error = require('../helpers/error');
 var email = require('../helpers/email');
 var uriHelper = require('../helpers/uri');
+var requireLogin = require('../middleware/requireLogin');
 
 var router = express.Router();
 module.exports = router;
@@ -36,11 +37,11 @@ router.get('/logout', function(request, response) {
   response.redirect('/');
 });
 
-router.get('/profile', helper.requireLogin, function(request, response) {
+router.get('/profile', requireLogin, function(request, response) {
   response.render('auth/profile.ejs');
 });
 
-router.post('/profile', helper.requireLogin, function(request, response) {
+router.post('/profile', requireLogin, function(request, response) {
   var username = request.user.username;
   var password = request.body.password;
   var newPassword = request.body.newPassword;
