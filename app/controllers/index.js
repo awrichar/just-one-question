@@ -11,3 +11,7 @@ router.use('/results', require('./results'));
 router.get('/', function(request, response) {
   response.redirect('/main');
 });
+
+router.get('/about', function(request, response) {
+  response.render('about.ejs');
+});

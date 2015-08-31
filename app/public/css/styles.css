@@ -78,3 +78,12 @@ h1 {
 ::-webkit-input-placeholder { color: #999; }
 :-moz-placeholder { color: #999; }
 .placeholder { color: #999; }
+
+.about {
+    font-size: 16px;
+    text-align: justify;
+}
+
+.about p {
+    margin-top: 1.5em;
+}
