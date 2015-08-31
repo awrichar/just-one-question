@@ -10,27 +10,12 @@ var auth = require('../helpers/auth');
 var webhook = require('../helpers/webhook');
 var uriHelper = require('../helpers/uri');
 var helper = require('../helpers/question');
+var forms = require('../helpers/forms');
 
 var router = express.Router();
 module.exports = router;
 
 router.use(bodyParser.urlencoded({ extended: false }));
-
-var bootstrapField = function (name, object) {
-  if (!Array.isArray(object.widget.classes)) { object.widget.classes = []; }
-  if (object.widget.classes.indexOf('form-control') === -1) {
-      object.widget.classes.push('form-control');
-  }
-
-  var label = object.labelHTML(name);
-  var error = object.error ? '<div class="help-block has-error">' + object.error + '</div>' : '';
-
-  var validationclass = object.value && !object.error ? 'has-success' : '';
-  validationclass = object.error ? 'has-error' : validationclass;
-
-  var widget = object.widget.toHTML(name, object);
-  return '<div class="form-group ' + validationclass + '">' + widget + error + '</div>';
-};
 
 router.get('/', function(request, response) {
   var hideEmail = request.user ? true : false;
@@ -73,7 +58,7 @@ function createQuestion(user_id, recipients, q, choices, callback) {
 }
 
 function renderEditForm(form, response) {
-  response.render('index.ejs', {form: form.toHTML(bootstrapField)});
+  response.render('index.ejs', {form: form.toHTML(forms.bootstrapField)});
 }
 
 function renderPreviewForm(request, response, step) {
