@@ -11,6 +11,8 @@ var db = require('./app/db');
 var KnexSessionStore = require('connect-session-knex')(session);
 
 var app = express();
+module.exports = app;
+
 app.use(express.static('./app/public'));
 app.use(session({
   secret: config.SESSION_KEY,
