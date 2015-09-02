@@ -6,6 +6,8 @@ module.exports = {
 
   response: function(response, msg, err) {
     this.log(msg, err);
-    return response.render('error.ejs');
+    return response.render('error.ejs', {
+      message: msg || 'An unknown error occurred.',
+    });
   }
 };

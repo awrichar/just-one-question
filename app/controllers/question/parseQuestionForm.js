@@ -154,7 +154,7 @@ function sendQuestion(request, response) {
 
         webhook.createHook(request, id, function(err) {
           if (err) return error.response(response, 'Error creating email hook', err);
-          response.render('success.ejs');
+          response.render('success.ejs', {url: '/results/' + id});
         });
       }
     );
