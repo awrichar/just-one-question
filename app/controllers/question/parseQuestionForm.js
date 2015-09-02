@@ -84,21 +84,19 @@ function checkPreviewForm(request, response) {
 }
 
 function moveToNextStep(request, response) {
-  var forcePreview = (request.body.step == 'validate');
+  if (request.user) {
+    var forcePreview = (request.body.step == 'validate');
 
-  getUser(request, request.body.email, function(err, user) {
-    if (err) return error.response(response, 'Error looking up user', err);
-    if (!user) return renderPreviewForm(request, response, 'register');
-    if (!request.user) return renderPreviewForm(request, response, 'login');
     if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
     if (forcePreview) return renderPreviewForm(request, response);
-    sendQuestion(request, response);
-  });
-}
+    return sendQuestion(request, response);
+  }
 
-function getUser(request, username, callback) {
-  if (request.user) callback(null, request.user);
-  else userModel.get(username, callback);
+  userModel.get(request.body.email, function(err, user) {
+    if (err) return error.response(response, 'Error looking up user', err);
+    if (user) return renderPreviewForm(request, response, 'login');
+    renderPreviewForm(request, response, 'register');
+  });
 }
 
 function createUser(request, username, password, callback) {
