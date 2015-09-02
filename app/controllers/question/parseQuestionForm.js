@@ -12,14 +12,15 @@ var forms = require('../../helpers/forms');
 
 exports = module.exports = function (request, response) {
   var hideEmail = request.user ? true : false;
+  var form = questionForm({hideEmail: hideEmail});
 
   if (request.body.action == 'Edit') {
-    var form = questionForm({hideEmail: hideEmail}).bind(request.body);
-    renderEditForm(form, response);
-  } else if (request.body.step == 'validate') {
-    questionForm({hideEmail: hideEmail}).handle(request, {
+    renderEditForm(form.bind(request.body), response);
+  } else {
+    form.handle(request, {
       success: function(form) {
-        checkPreviewForm(request, response, true);
+        var forcePreview = (request.body.step == 'validate');
+        checkPreviewForm(request, response, forcePreview);
       },
       error: function(form) {
         renderEditForm(form, response);
@@ -28,8 +29,6 @@ exports = module.exports = function (request, response) {
         renderEditForm(form, response);
       }
     });
-  } else {
-    checkPreviewForm(request, response);
   }
 };
 
