@@ -7,11 +7,11 @@ db.run('DELETE FROM user', function(err) {
 });
 
 db.run('DELETE FROM question', function(err) {
-  if (err) console.log("Error truncating user table: " + err);
+  if (err) console.log("Error truncating question table: " + err);
 });
 
 db.run('DELETE FROM response', function(err) {
-  if (err) console.log("Error truncating user table: " + err);
+  if (err) console.log("Error truncating response table: " + err);
 });
 
 db.run('DELETE FROM sessions', function(err) {
