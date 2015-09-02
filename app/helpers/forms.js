@@ -8,6 +8,8 @@ module.exports = {
   emailListValidator: function(message) {
     var msg = message || 'Please enter a list of email addresses separated by commas.';
     return function (form, field, callback) {
+      field.data = field.value = field.value.replace(';', ',');
+
       var pieces = field.data.split(/\s*,\s*/);
       for (var i=0; i<pieces.length; i++) {
         if (!emailRegex.test(pieces[i])) {
