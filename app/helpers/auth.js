@@ -1,6 +1,7 @@
 var querystring = require("querystring");
 var hash = require('password-hash');
 var userModel = require('../models/user');
+var addUser = require('../middleware/addUser');
 
 module.exports = {
   redirectToLogin: function(request, response) {
@@ -18,10 +19,9 @@ module.exports = {
   },
 
   setUser: function(request, response, user, callback) {
-    var self = this;
     request.login(user, function(err) {
       if (err) return callback(err);
-      self.addUserToResponse(request, response, function() {
+      addUser(request, response, function() {
         callback(null, user);
       });
     });

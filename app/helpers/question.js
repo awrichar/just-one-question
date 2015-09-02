@@ -15,6 +15,7 @@ module.exports = {
 
   splitChoices: function(choices) {
     var output = [];
+    if (!choices) return output;
     choices = choices.split('\n');
 
     for (var i=0; i<choices.length; i++) {
@@ -42,7 +43,7 @@ module.exports = {
       choicesNumbered = this.numberChoices(choicesSplit);
 
     return {
-      email: body.email || request.user.username,
+      email: request.user ? request.user.username : body.email,
       recipients: body.recipients,
       question: body.question,
       choices: choices,
