@@ -21,6 +21,8 @@ exports.get = function(username, callback) {
 };
 
 exports.confirm = function(username, code, callback) {
+  code = code.trim();
+
   db.get(TABLE, {username: username}, function(err, row) {
     if (err) return callback(err);
     if (code != row.confirmation_code) return callback(null, false);
