@@ -78,8 +78,9 @@ module.exports = {
     var client = getClient();
     getContextIOAccount(client, config.EMAIL_USER, function(err, ctxID) {
       if (err) return callback(err);
-      client.accounts(ctxID).sync();
-      callback(null);
+      client.accounts(ctxID).sync().post(function (err) {
+        callback(err);
+      });
     });
   }
 };

@@ -34,6 +34,10 @@
 
       <canvas id="myChart" width="400" height="400"></canvas>
 
+      <div class="help-block">
+        <em>Results may be delayed by up to 5 minutes.</em>
+      </div>
+
     </div>
     <% include partials/body_end %>
     <script src="/js/Chart.min.js"></script>
@@ -54,8 +58,13 @@
 
         var responses = <%- JSON.stringify(responses) %>;
         var data = [];
+        var hasData = false;
 
         for(var i=0; i<responses.length; i++) {
+          if (responses[i].count > 0) {
+            hasData = true;
+          }
+
           data.push({
             label: responses[i].label,
             value: responses[i].count,
@@ -63,8 +72,12 @@
           });
         }
 
-        var ctx = document.getElementById("myChart").getContext("2d");
-        var myNewChart = new Chart(ctx).Pie(data);
+        if (hasData) {
+          var ctx = document.getElementById("myChart").getContext("2d");
+          var myNewChart = new Chart(ctx).Pie(data);
+        } else {
+          $('#myChart').hide();
+        }
       });
     </script>
   </body>
