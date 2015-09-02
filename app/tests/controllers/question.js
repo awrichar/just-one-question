@@ -74,7 +74,7 @@ describe('Question controller', function() {
     }
 
     if (options.userExists) {
-      var user = options.userConfirmed
+      var user = (options.userConfirmed || options.hasConfirmationData)
         ? confirmedUser
         : unconfirmedUser;
 
@@ -90,6 +90,7 @@ describe('Question controller', function() {
 
     if (options.hasRegistrationData) {
       userModel.create.yields(null, unconfirmedUser);
+      request.user = unconfirmedUser;
     }
 
     if (options.hasConfirmationData) {
@@ -97,9 +98,13 @@ describe('Question controller', function() {
     }
 
     if (options.hasLoginData) {
-      request.body.email = confirmedUser.username;
+      var user = options.userConfirmed
+        ? confirmedUser
+        : unconfirmedUser;
+
+      request.body.email = user.username;
       request.body.password = 'test';
-      request.user = confirmedUser;
+      request.user = user;
     }
 
     return request;
@@ -255,18 +260,18 @@ describe('Question controller', function() {
     }, done);
   });
 
-  it('should confirm user and ask to login', function(done) {
+  it('should login user and ask to confirm', function(done) {
     var request = setupRequest({
-      step: 'confirm',
+      step: 'login',
       hasGoodFormData: true,
       userExists: true,
-      hasConfirmationData: true,
+      hasLoginData: true,
     });
 
     verifyController(request, {
       template: 'preview.ejs',
-      step: 'login',
-      userConfirmed: true,
+      step: 'confirm',
+      userLoggedIn: true,
     }, done);
   });
 

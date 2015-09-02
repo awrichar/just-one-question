@@ -19,8 +19,7 @@ exports = module.exports = function (request, response) {
   } else {
     form.handle(request, {
       success: function(form) {
-        var forcePreview = (request.body.step == 'validate');
-        checkPreviewForm(request, response, forcePreview);
+        checkPreviewForm(request, response);
       },
       error: function(form) {
         renderEditForm(form, response);
@@ -57,42 +56,49 @@ function renderPreviewForm(request, response, step) {
   response.render('preview.ejs', params);
 }
 
-function checkPreviewForm(request, response, forceShow) {
-  var email = request.user ? request.user.username : request.body.email;
+function checkPreviewForm(request, response) {
   var step = request.body.step;
 
   if (step == 'register') {
-    createUser(request, email, request.body.password, function(err, user) {
+    createUser(request, request.body.email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error creating user', err);
       auth.setUser(request, response, user, function(err) {
         if (err) return error.response(response, 'Error logging in', err);
-        renderPreviewForm(request, response, 'confirm');
+        moveToNextStep(request, response);
       });
     });
-  } else if (step == 'confirm') {
-    userModel.confirm(email, request.body.code, function(err, success) {
+  } else if (step == 'confirm' && request.user) {
+    userModel.confirm(request.user.username, request.body.code, function(err, success) {
       if (err) return error.response(response, 'Error confirming user', err);
-      if (!success) return renderPreviewForm(request, response, 'confirm');
-      if (!request.user) return renderPreviewForm(request, response, 'login');
-      sendQuestion(request, response);
+      if (success) request.user.confirmation_code = null;
+      moveToNextStep(request, response);
     });
   } else if (step == 'login') {
-    auth.checkAndLogin(request, response, email, request.body.password, function(err, user) {
+    auth.checkAndLogin(request, response, request.body.email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error logging in', err);
-      if (!user) return renderPreviewForm(request, response, 'login');
-      sendQuestion(request, response);
+      moveToNextStep(request, response);
     });
-  } else if (request.user) {
-    if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
-    if (forceShow) return renderPreviewForm(request, response);
-    sendQuestion(request, response);
   } else {
-    userModel.get(email, function(err, user) {
-      if (err) return error.response(response, 'Error looking up user', err);
-      if (!user) return renderPreviewForm(request, response, 'register');
-      renderPreviewForm(request, response, 'login');
-    });
+    moveToNextStep(request, response);
   }
+}
+
+function moveToNextStep(request, response) {
+  var forcePreview = (request.body.step == 'validate');
+
+  getUser(request, request.body.email, function(err, user) {
+    if (err) return error.response(response, 'Error looking up user', err);
+    if (!user) return renderPreviewForm(request, response, 'register');
+    if (!request.user) return renderPreviewForm(request, response, 'login');
+    if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
+    if (forcePreview) return renderPreviewForm(request, response);
+    sendQuestion(request, response);
+  });
+}
+
+function getUser(request, username, callback) {
+  if (request.user) callback(null, request.user);
+  else userModel.get(username, callback);
 }
 
 function createUser(request, username, password, callback) {
