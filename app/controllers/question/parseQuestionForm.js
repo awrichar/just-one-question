@@ -12,14 +12,14 @@ var forms = require('../../helpers/forms');
 
 exports = module.exports = function (request, response) {
   var hideEmail = request.user ? true : false;
-  var form = questionForm({hideEmail: hideEmail});
+  var form = questionForm({ hideEmail: hideEmail });
 
   if (request.body.action == 'Edit') {
     renderEditForm(form.bind(request.body), response);
   } else {
     form.handle(request, {
       success: function(form) {
-        checkPreviewForm(request, response);
+        checkPreviewForm(form, request, response);
       },
       error: function(form) {
         renderEditForm(form, response);
@@ -43,20 +43,21 @@ function createQuestion(user_id, recipients, q, choices, callback) {
   );
 }
 
-function renderEditForm(form, response) {
+var renderEditForm = exports.renderEditForm = function(form, response) {
   form.html = form.toHTML(forms.bootstrapField);
   response.render('index.ejs', {form: form});
 }
 
-exports.renderEditForm = renderEditForm;
-
-function renderPreviewForm(request, response, step) {
-  var params = helper.getQuestionParams(request);
-  params['step'] = step;
-  response.render('preview.ejs', params);
+function renderPreviewForm(email, form, response, step) {
+  response.render('preview.ejs', {
+    email: email,
+    form: form,
+    step: step,
+    choicesSplit: helper.splitChoices(form.fields.choices.data),
+  });
 }
 
-function checkPreviewForm(request, response) {
+function checkPreviewForm(form, request, response) {
   var step = request.body.step;
 
   if (step == 'register') {
@@ -64,38 +65,42 @@ function checkPreviewForm(request, response) {
       if (err) return error.response(response, 'Error creating user', err);
       auth.setUser(request, response, user, function(err) {
         if (err) return error.response(response, 'Error logging in', err);
-        moveToNextStep(request, response);
+        moveToNextStep(form, request, response);
       });
     });
   } else if (step == 'confirm' && request.user) {
     userModel.confirm(request.user.username, request.body.code, function(err, success) {
       if (err) return error.response(response, 'Error confirming user', err);
       if (success) request.user.confirmation_code = null;
-      moveToNextStep(request, response);
+      moveToNextStep(form, request, response);
     });
   } else if (step == 'login') {
     auth.checkAndLogin(request, response, request.body.email, request.body.password, function(err, user) {
       if (err) return error.response(response, 'Error logging in', err);
-      moveToNextStep(request, response);
+      moveToNextStep(form, request, response);
     });
   } else {
-    moveToNextStep(request, response);
+    moveToNextStep(form, request, response);
   }
 }
 
-function moveToNextStep(request, response) {
+function moveToNextStep(form, request, response) {
+  var email;
+
   if (request.user) {
     var forcePreview = (request.body.step == 'validate');
+    email = request.user.username;
 
-    if (request.user.confirmation_code) return renderPreviewForm(request, response, 'confirm');
-    if (forcePreview) return renderPreviewForm(request, response);
-    return sendQuestion(request, response);
+    if (request.user.confirmation_code) return renderPreviewForm(email, form, response, 'confirm');
+    if (forcePreview) return renderPreviewForm(email, form, response);
+    return sendQuestion(form, request, response);
   }
 
-  userModel.get(request.body.email, function(err, user) {
+  email = request.body.email;
+  userModel.get(email, function(err, user) {
     if (err) return error.response(response, 'Error looking up user', err);
-    if (user) return renderPreviewForm(request, response, 'login');
-    renderPreviewForm(request, response, 'register');
+    if (user) return renderPreviewForm(email, form, response, 'login');
+    renderPreviewForm(email, form, response, 'register');
   });
 }
 
@@ -126,25 +131,27 @@ function sendConfirmation(request, to, code, callback) {
   );
 }
 
-function sendQuestion(request, response) {
-  var params = helper.getQuestionParams(request);
+function sendQuestion(form, request, response) {
+  var recipients = form.fields.recipients.data;
+  var question = form.fields.question.data;
+  var choices = helper.splitChoices(form.fields.choices.data);
 
-  createQuestion(request.user.id, params.recipients, params.question, params.choicesSplit, function(err, id) {
+  createQuestion(request.user.id, recipients, question, choices, function(err, id) {
     if (err) return error.response(response, 'Error inserting into database', err);
 
     var prefix = webhook.getPrefix(id),
-      subject = prefix + ' ' + params.question;
+      subject = prefix + ' ' + question;
 
     email.send({
-        fromName: params.email,
-        bcc: params.recipients,
+        fromName: request.user.username,
+        bcc: recipients,
         subject: subject,
         htmlTemplate: 'app/views/emails/question.ejs',
         textTemplate: 'app/views/emails/question.txt',
         templateOptions: {
-          email: params.email,
-          question: params.question,
-          choices: params.choicesSplit,
+          email: request.user.username,
+          question: question,
+          choices: choices,
           rootUri: uriHelper.getRootUri(request),
         },
       }, function(err) {

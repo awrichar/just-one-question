@@ -25,30 +25,4 @@ module.exports = {
 
     return output;
   },
-
-  numberChoices: function(choices) {
-    var output = [];
-
-    for (var i=0; i<choices.length; i++) {
-      output.push((i+1) + ') ' + choices[i]);
-    }
-
-    return output;
-  },
-
-  getQuestionParams: function(request) {
-    var body = request.body,
-      choices = body.choices,
-      choicesSplit = this.splitChoices(choices),
-      choicesNumbered = this.numberChoices(choicesSplit);
-
-    return {
-      email: request.user ? request.user.username : body.email,
-      recipients: body.recipients,
-      question: body.question,
-      choices: choices,
-      choicesSplit: choicesSplit,
-      choicesNumbered: choicesNumbered
-    };
-  }
 };

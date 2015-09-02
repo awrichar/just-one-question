@@ -11,25 +11,27 @@
 
       <h1>Preview</h1>
 
-      <table class="table">
+      <table class="table preview">
         <tr>
           <th>From</th>
           <td><%= email %></td>
         </tr>
         <tr>
           <th>To</th>
-          <td><%= recipients %></td>
+          <td><%= form.fields.recipients.data %></td>
         </tr>
         <tr>
           <th>Question</th>
-          <td><%= question %></td>
+          <td><%= form.fields.question.data %></td>
         </tr>
         <tr>
           <th>Choices</th>
           <td>
-            <% for(var i=0; i<choicesNumbered.length; i++) { %>
-              <%= choicesNumbered[i] %><br />
+            <ol>
+            <% for (var i=0; i<choicesSplit.length; i++) { %>
+              <li><%= choicesSplit[i] %></li>
             <% } %>
+            </ol>
           </td>
         </tr>
       </table>
@@ -38,9 +40,9 @@
         <input type="hidden" name="step" value="<%= step %>" />
 
         <input type="hidden" name="email" value="<%= email %>" />
-        <input type="hidden" name="recipients" value="<%= recipients %>" />
-        <input type="hidden" name="question" value="<%= question %>" />
-        <input type="hidden" name="choices" value="<%= choices %>" />
+        <input type="hidden" name="recipients" value="<%= form.fields.recipients.value %>" />
+        <input type="hidden" name="question" value="<%= form.fields.question.value %>" />
+        <input type="hidden" name="choices" value="<%= form.fields.choices.value %>" />
 
         <% if (step == 'register') { %>
           <span class="help-block">

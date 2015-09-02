@@ -88,3 +88,7 @@ h1 {
 .about p {
     margin-top: 1.5em;
 }
+
+.preview ol {
+    padding-left: 15px;
+}
