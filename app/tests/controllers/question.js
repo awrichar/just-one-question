@@ -16,6 +16,16 @@ describe('Question controller', function() {
     utils.stubModule(userModel);
     utils.stubModule(email);
     utils.stubModule(webhook);
+
+    email.send.yields();
+    webhook.createHook.yields();
+    webhook.getPrefix.returns(questionPrefix);
+
+    userModel.get.yields();
+    userModel.create.yields(null, unconfirmedUser);
+    userModel.confirm.yields(null, true);
+    questionModel.create.yields(null, questionId);
+    responseModel.createMany.yields();
   });
 
   afterEach(function() {
@@ -26,42 +36,68 @@ describe('Question controller', function() {
     utils.restoreModule(webhook);
   });
 
+  var hostname = 'testhost';
+  var questionId = 42;
+  var questionPrefix = '[Q42]';
+  var userPassword = 'test';
+
   var unconfirmedUser = {
     id: 1,
     username: 'user@test.com',
-    password: hash.generate('test'),
+    password: hash.generate(userPassword),
     confirmation_code: 'foo',
   };
 
   var confirmedUser = {
     id: 1,
     username: 'user@test.com',
-    password: hash.generate('test'),
+    password: hash.generate(userPassword),
+  };
+
+  var goodData = {
+    email: 'user@test.com',
+    recipients: 'alpha@beta.com',
+    question: 'Test question',
+    choices: 'Choice 1\nChoice 2',
+  };
+
+  var confirmationEmailParams = {
+    to: unconfirmedUser.username,
+    subject: 'Confirm your account',
+    htmlTemplate: 'app/views/emails/confirm.ejs',
+    textTemplate: 'app/views/emails/confirm.txt',
+    templateOptions: {
+      code: unconfirmedUser.confirmation_code,
+      rootUri: 'http://' + hostname,
+    },
+  };
+
+  var questionEmailParams = {
+    fromName: goodData.email,
+    bcc: goodData.recipients,
+    subject: questionPrefix + ' ' + goodData.question,
+    htmlTemplate: 'app/views/emails/question.ejs',
+    textTemplate: 'app/views/emails/question.txt',
+    templateOptions: {
+      email: goodData.email,
+      question: goodData.question,
+      choices: goodData.choices.split('\n'),
+      rootUri: 'http://' + hostname,
+    },
   };
 
   function setupRequest(options) {
     var request = {
       body: {},
-      get: sinon.stub().returns(''),
+      protocol: 'http',
+      get: sinon.stub().withArgs('host').returns(hostname),
       login: sinon.stub().yields(),
     };
 
-    email.send.yields();
-    webhook.createHook.yields();
-
-    questionModel.create.yields(null, 1);
-    responseModel.createMany.yields();
-
     if (options.hasGoodFormData) {
-      request.body = {
-        email: 'foo@bar.com',
-        recipients: 'alpha@beta.com',
-        question: 'Test question',
-        choices: 'Choice 1\nChoice 2',
-      };
-
-      for (var key in request.body) {
-        request[key] = request.body[key];
+      for (var key in goodData) {
+        request.body[key] = goodData[key];
+        request[key] = goodData[key];
       }
     }
 
@@ -84,17 +120,16 @@ describe('Question controller', function() {
       assert.fail(options.userConfirmed, false, 'invalid state: user is confirmed but does not exist');
     } else if (options.userLoggedIn) {
       assert.fail(options.userLoggedIn, false, 'invalid state: user is logged in but does not exist');
-    } else {
-      userModel.get.yields();
     }
 
     if (options.hasRegistrationData) {
-      userModel.create.yields(null, unconfirmedUser);
+      request.body.email = unconfirmedUser.username;
+      request.body.password = userPassword;
       request.user = unconfirmedUser;
     }
 
     if (options.hasConfirmationData) {
-      userModel.confirm.yields(null, true);
+      request.body.code = unconfirmedUser.confirmation_code;
     }
 
     if (options.hasLoginData) {
@@ -103,7 +138,7 @@ describe('Question controller', function() {
         : unconfirmedUser;
 
       request.body.email = user.username;
-      request.body.password = 'test';
+      request.body.password = userPassword;
       request.user = user;
     }
 
@@ -131,7 +166,13 @@ describe('Question controller', function() {
         if (options.questionCreated) {
           assert.ok(questionModel.create.calledOnce, 'question created');
           assert.ok(responseModel.createMany.calledOnce, 'responses created');
-          assert.ok(webhook.createHook.calledOnce, 'email hook created');
+          assert.ok(webhook.createHook.calledOnce, 'web hook created');
+
+          assert.ok(questionModel.create.calledWith(confirmedUser.id,
+            goodData.recipients, goodData.question), 'question data is correct');
+          assert.ok(responseModel.createMany.calledWith(questionId,
+            goodData.choices.split('\n')), 'response data is correct');
+          assert.ok(webhook.createHook.calledWith(request, questionId), 'web hook data is correct');
         } else {
           assert.ok(!questionModel.create.called, 'no question created');
           assert.ok(!responseModel.createMany.called, 'no responses created');
@@ -140,26 +181,35 @@ describe('Question controller', function() {
 
         if (options.userRegistered) {
           assert.ok(userModel.create.calledOnce, 'user created');
+          assert.ok(userModel.create.calledWith(options.whichUser.username,
+            userPassword), 'correct user created');
         } else {
           assert.ok(!userModel.create.called, 'no user created');
         }
 
-        if (options.questionCreated || options.userRegistered) {
-          assert.ok(email.send.calledOnce, 'email sent');
+        if (options.userRegistered) {
+          assert.ok(email.send.calledOnce, 'one email sent');
+          assert.ok(email.send.calledWith(confirmationEmailParams), 'confirmation email sent');
+        } else if (options.questionCreated) {
+          assert.ok(email.send.calledOnce, 'one email sent');
+          assert.ok(email.send.calledWith(questionEmailParams), 'question email sent');
         } else {
           assert.ok(!email.send.called, 'no email sent');
         }
 
         if (options.userRegistered || options.userLoggedIn) {
-          assert.ok(request.login.calledOnce, 'user logged in');
+          assert.ok(request.login.calledOnce, 'login called once');
+          assert.ok(request.login.calledWith(options.whichUser), 'correct user logged in');
         } else {
-          assert.ok(!request.login.called, 'no user logged in');
+          assert.ok(!request.login.called, 'login never called');
         }
 
         if (options.userConfirmed) {
-          assert.ok(userModel.confirm.calledOnce, 'user is confirmed');
+          assert.ok(userModel.confirm.calledOnce, 'confirm called once');
+          assert.ok(userModel.confirm.calledWith(unconfirmedUser.username,
+            unconfirmedUser.confirmation_code), 'correct user is confirmed');
         } else {
-          assert.ok(!userModel.confirm.called, 'user is not confirmed');
+          assert.ok(!userModel.confirm.called, 'confirm never called');
         }
 
         done();
@@ -257,6 +307,7 @@ describe('Question controller', function() {
       template: 'preview.ejs',
       step: 'confirm',
       userRegistered: true,
+      whichUser: unconfirmedUser,
     }, done);
   });
 
@@ -272,6 +323,7 @@ describe('Question controller', function() {
       template: 'preview.ejs',
       step: 'confirm',
       userLoggedIn: true,
+      whichUser: unconfirmedUser,
     }, done);
   });
 
@@ -303,6 +355,7 @@ describe('Question controller', function() {
     verifyController(request, {
       template: 'success.ejs',
       userLoggedIn: true,
+      whichUser: confirmedUser,
       questionCreated: true,
     }, done);
   });
