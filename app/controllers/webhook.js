@@ -13,7 +13,8 @@ router.post('/:id', function (request, response) {
   response.send();
 
   var pollID = request.params.id,
-    messageID = request.body.message_data.message_id;
+    messageID = request.body.message_data.message_id,
+    sender = request.body.message_data.addresses.from.email;
 
   helper.getMessage(messageID, function(err, msg) {
     if (err || !msg.body.length) error.log('Error getting message body', err);
@@ -31,7 +32,7 @@ router.post('/:id', function (request, response) {
 
       responseModel.increment(pollID, choice, function(err, changes) {
         if (err || !changes) return error.log('Error writing response', err);
-        console.log('Added response (' + choice + ') to question (' + pollID + ')');
+        console.log('Added response to question (' + pollID + ') from (' + sender + ')');
       });
     });
   });
