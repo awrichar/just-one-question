@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <title>Just One Question</title>
-    <% include partials/head %>
+    <%- include("partials/head") %>
   </head>
 
   <body>
-    <% include partials/body_start %>
+    <%- include("partials/body_start") %>
     <div class="col-md-12">
 
       <h1>Just One Question</h1>
@@ -21,7 +21,7 @@
       </form>
 
     </div>
-    <% include partials/body_end %>
+    <%- include("partials/body_end") %>
     <script src="/js/jquery.placeholder.min.js"></script>
     <script type="text/javascript">
       $('textarea[placeholder]').placeholder();

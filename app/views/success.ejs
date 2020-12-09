@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <title>Just One Question - Success</title>
-    <% include partials/head %>
+    <%- include("partials/head") %>
   </head>
 
   <body>
-    <% include partials/body_start %>
+    <%- include("partials/body_start") %>
     <div class="col-md-12">
 
       <h1>Success!</h1>
@@ -14,6 +14,6 @@
       <p><a href="<%= url %>">View results</a></p>
 
     </div>
-    <% include partials/body_end %>
+    <%- include("partials/body_end") %>
   </body>
 </html>
